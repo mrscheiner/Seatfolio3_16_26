@@ -1,0 +1,762 @@
+[
+  {
+    "league": "nba",
+    "id": "mem",
+    "logo": "nba/mem.png"
+  },
+  {
+    "league": "nba",
+    "id": "min",
+    "logo": "nba/min.png"
+  },
+  {
+    "league": "nba",
+    "id": "dal",
+    "logo": "nba/dal.png"
+  },
+  {
+    "league": "nba",
+    "id": "phx",
+    "logo": "nba/phx.png"
+  },
+  {
+    "league": "nba",
+    "id": "sac",
+    "logo": "nba/sac.png"
+  },
+  {
+    "league": "nba",
+    "id": "mil",
+    "logo": "nba/mil.png"
+  },
+  {
+    "league": "nba",
+    "id": "lac",
+    "logo": "nba/lac.png"
+  },
+  {
+    "league": "nba",
+    "id": "uta",
+    "logo": "nba/uta.png"
+  },
+  {
+    "league": "nba",
+    "id": "okc",
+    "logo": "nba/okc.png"
+  },
+  {
+    "league": "nba",
+    "id": "sas",
+    "logo": "nba/sas.png"
+  },
+  {
+    "league": "nba",
+    "id": "phi",
+    "logo": "nba/phi.png"
+  },
+  {
+    "league": "nba",
+    "id": "bos",
+    "logo": "nba/bos.png"
+  },
+  {
+    "league": "nba",
+    "id": "cha",
+    "logo": "nba/cha.png"
+  },
+  {
+    "league": "nba",
+    "id": "atl",
+    "logo": "nba/atl.png"
+  },
+  {
+    "league": "nba",
+    "id": "bkn",
+    "logo": "nba/bkn.png"
+  },
+  {
+    "league": "nba",
+    "id": "det",
+    "logo": "nba/det.png"
+  },
+  {
+    "league": "nba",
+    "id": "den",
+    "logo": "nba/den.png"
+  },
+  {
+    "league": "nba",
+    "id": "ind",
+    "logo": "nba/ind.png"
+  },
+  {
+    "league": "nba",
+    "id": "tor",
+    "logo": "nba/tor.png"
+  },
+  {
+    "league": "nba",
+    "id": "wsh",
+    "logo": "nba/wsh.png"
+  },
+  {
+    "league": "nba",
+    "id": "cle",
+    "logo": "nba/cle.png"
+  },
+  {
+    "league": "nba",
+    "id": "por",
+    "logo": "nba/por.png"
+  },
+  {
+    "league": "nba",
+    "id": "lal",
+    "logo": "nba/lal.png"
+  },
+  {
+    "league": "nba",
+    "id": "hou",
+    "logo": "nba/hou.png"
+  },
+  {
+    "league": "nba",
+    "id": "orl",
+    "logo": "nba/orl.png"
+  },
+  {
+    "league": "nba",
+    "id": "nyk",
+    "logo": "nba/nyk.png"
+  },
+  {
+    "league": "nba",
+    "id": "gsw",
+    "logo": "nba/gsw.png"
+  },
+  {
+    "league": "nba",
+    "id": "nop",
+    "logo": "nba/nop.png"
+  },
+  {
+    "league": "nba",
+    "id": "mia",
+    "logo": "nba/mia.png"
+  },
+  {
+    "league": "nba",
+    "id": "chi",
+    "logo": "nba/chi.png"
+  },
+  {
+    "league": "mls",
+    "id": "dal",
+    "logo": "mls/dal.png"
+  },
+  {
+    "league": "mls",
+    "id": "la",
+    "logo": "mls/la.png"
+  },
+  {
+    "league": "mls",
+    "id": "nyc",
+    "logo": "mls/nyc.png"
+  },
+  {
+    "league": "mls",
+    "id": "ny",
+    "logo": "mls/ny.png"
+  },
+  {
+    "league": "mls",
+    "id": "phi",
+    "logo": "mls/phi.png"
+  },
+  {
+    "league": "mls",
+    "id": "columbus",
+    "logo": "mls/columbus.png"
+  },
+  {
+    "league": "mls",
+    "id": "atl",
+    "logo": "mls/atl.png"
+  },
+  {
+    "league": "mls",
+    "id": "kc",
+    "logo": "mls/kc.png"
+  },
+  {
+    "league": "mls",
+    "id": "van",
+    "logo": "mls/van.png"
+  },
+  {
+    "league": "mls",
+    "id": "sj",
+    "logo": "mls/sj.png"
+  },
+  {
+    "league": "mls",
+    "id": "tor",
+    "logo": "mls/tor.png"
+  },
+  {
+    "league": "mls",
+    "id": "aus",
+    "logo": "mls/aus.png"
+  },
+  {
+    "league": "mls",
+    "id": "dc",
+    "logo": "mls/dc.png"
+  },
+  {
+    "league": "mls",
+    "id": "mtl",
+    "logo": "mls/mtl.png"
+  },
+  {
+    "league": "mls",
+    "id": "sea",
+    "logo": "mls/sea.png"
+  },
+  {
+    "league": "mls",
+    "id": "por",
+    "logo": "mls/por.png"
+  },
+  {
+    "league": "mls",
+    "id": "col",
+    "logo": "mls/col.png"
+  },
+  {
+    "league": "mls",
+    "id": "lafc",
+    "logo": "mls/lafc.png"
+  },
+  {
+    "league": "mls",
+    "id": "clt",
+    "logo": "mls/clt.png"
+  },
+  {
+    "league": "mls",
+    "id": "rsl",
+    "logo": "mls/rsl.png"
+  },
+  {
+    "league": "mls",
+    "id": "hou",
+    "logo": "mls/hou.png"
+  },
+  {
+    "league": "mls",
+    "id": "nashville",
+    "logo": "mls/nashville.png"
+  },
+  {
+    "league": "mls",
+    "id": "orl",
+    "logo": "mls/orl.png"
+  },
+  {
+    "league": "mls",
+    "id": "cin",
+    "logo": "mls/cin.png"
+  },
+  {
+    "league": "mls",
+    "id": "mia",
+    "logo": "mls/mia.png"
+  },
+  {
+    "league": "mls",
+    "id": "chi",
+    "logo": "mls/chi.png"
+  },
+  {
+    "league": "mls",
+    "id": "stl",
+    "logo": "mls/stl.png"
+  },
+  {
+    "league": "mls",
+    "id": "ne",
+    "logo": "mls/ne.png"
+  },
+  {
+    "league": "nfl",
+    "id": "ari",
+    "logo": "nfl/ari.png"
+  },
+  {
+    "league": "nfl",
+    "id": "min",
+    "logo": "nfl/min.png"
+  },
+  {
+    "league": "nfl",
+    "id": "dal",
+    "logo": "nfl/dal.png"
+  },
+  {
+    "league": "nfl",
+    "id": "lv",
+    "logo": "nfl/lv.png"
+  },
+  {
+    "league": "nfl",
+    "id": "lar",
+    "logo": "nfl/lar.png"
+  },
+  {
+    "league": "nfl",
+    "id": "ten",
+    "logo": "nfl/ten.png"
+  },
+  {
+    "league": "nfl",
+    "id": "no",
+    "logo": "nfl/no.png"
+  },
+  {
+    "league": "nfl",
+    "id": "lac",
+    "logo": "nfl/lac.png"
+  },
+  {
+    "league": "nfl",
+    "id": "nyg",
+    "logo": "nfl/nyg.png"
+  },
+  {
+    "league": "nfl",
+    "id": "bal",
+    "logo": "nfl/bal.png"
+  },
+  {
+    "league": "nfl",
+    "id": "tb",
+    "logo": "nfl/tb.png"
+  },
+  {
+    "league": "nfl",
+    "id": "phi",
+    "logo": "nfl/phi.png"
+  },
+  {
+    "league": "nfl",
+    "id": "atl",
+    "logo": "nfl/atl.png"
+  },
+  {
+    "league": "nfl",
+    "id": "sf",
+    "logo": "nfl/sf.png"
+  },
+  {
+    "league": "nfl",
+    "id": "gb",
+    "logo": "nfl/gb.png"
+  },
+  {
+    "league": "nfl",
+    "id": "kc",
+    "logo": "nfl/kc.png"
+  },
+  {
+    "league": "nfl",
+    "id": "det",
+    "logo": "nfl/det.png"
+  },
+  {
+    "league": "nfl",
+    "id": "den",
+    "logo": "nfl/den.png"
+  },
+  {
+    "league": "nfl",
+    "id": "ind",
+    "logo": "nfl/ind.png"
+  },
+  {
+    "league": "nfl",
+    "id": "wsh",
+    "logo": "nfl/wsh.png"
+  },
+  {
+    "league": "nfl",
+    "id": "sea",
+    "logo": "nfl/sea.png"
+  },
+  {
+    "league": "nfl",
+    "id": "cle",
+    "logo": "nfl/cle.png"
+  },
+  {
+    "league": "nfl",
+    "id": "car",
+    "logo": "nfl/car.png"
+  },
+  {
+    "league": "nfl",
+    "id": "buf",
+    "logo": "nfl/buf.png"
+  },
+  {
+    "league": "nfl",
+    "id": "hou",
+    "logo": "nfl/hou.png"
+  },
+  {
+    "league": "nfl",
+    "id": "nyj",
+    "logo": "nfl/nyj.png"
+  },
+  {
+    "league": "nfl",
+    "id": "pit",
+    "logo": "nfl/pit.png"
+  },
+  {
+    "league": "nfl",
+    "id": "cin",
+    "logo": "nfl/cin.png"
+  },
+  {
+    "league": "nfl",
+    "id": "mia",
+    "logo": "nfl/mia.png"
+  },
+  {
+    "league": "nfl",
+    "id": "chi",
+    "logo": "nfl/chi.png"
+  },
+  {
+    "league": "nfl",
+    "id": "jax",
+    "logo": "nfl/jax.png"
+  },
+  {
+    "league": "nfl",
+    "id": "ne",
+    "logo": "nfl/ne.png"
+  },
+  {
+    "league": "nhl",
+    "id": "min",
+    "logo": "nhl/min.png"
+  },
+  {
+    "league": "nhl",
+    "id": "dal",
+    "logo": "nhl/dal.png"
+  },
+  {
+    "league": "nhl",
+    "id": "uta",
+    "logo": "nhl/uta.png"
+  },
+  {
+    "league": "nhl",
+    "id": "tb",
+    "logo": "nhl/tb.png"
+  },
+  {
+    "league": "nhl",
+    "id": "phi",
+    "logo": "nhl/phi.png"
+  },
+  {
+    "league": "nhl",
+    "id": "bos",
+    "logo": "nhl/bos.png"
+  },
+  {
+    "league": "nhl",
+    "id": "nyr",
+    "logo": "nhl/nyr.png"
+  },
+  {
+    "league": "nhl",
+    "id": "cgy",
+    "logo": "nhl/cgy.png"
+  },
+  {
+    "league": "nhl",
+    "id": "ott",
+    "logo": "nhl/ott.png"
+  },
+  {
+    "league": "nhl",
+    "id": "njd",
+    "logo": "nhl/njd.png"
+  },
+  {
+    "league": "nhl",
+    "id": "ana",
+    "logo": "nhl/ana.png"
+  },
+  {
+    "league": "nhl",
+    "id": "det",
+    "logo": "nhl/det.png"
+  },
+  {
+    "league": "nhl",
+    "id": "nsh",
+    "logo": "nhl/nsh.png"
+  },
+  {
+    "league": "nhl",
+    "id": "wpg",
+    "logo": "nhl/wpg.png"
+  },
+  {
+    "league": "nhl",
+    "id": "van",
+    "logo": "nhl/van.png"
+  },
+  {
+    "league": "nhl",
+    "id": "sj",
+    "logo": "nhl/sj.png"
+  },
+  {
+    "league": "nhl",
+    "id": "tor",
+    "logo": "nhl/tor.png"
+  },
+  {
+    "league": "nhl",
+    "id": "wsh",
+    "logo": "nhl/wsh.png"
+  },
+  {
+    "league": "nhl",
+    "id": "mtl",
+    "logo": "nhl/mtl.png"
+  },
+  {
+    "league": "nhl",
+    "id": "sea",
+    "logo": "nhl/sea.png"
+  },
+  {
+    "league": "nhl",
+    "id": "cbj",
+    "logo": "nhl/cbj.png"
+  },
+  {
+    "league": "nhl",
+    "id": "col",
+    "logo": "nhl/col.png"
+  },
+  {
+    "league": "nhl",
+    "id": "car",
+    "logo": "nhl/car.png"
+  },
+  {
+    "league": "nhl",
+    "id": "buf",
+    "logo": "nhl/buf.png"
+  },
+  {
+    "league": "nhl",
+    "id": "nyi",
+    "logo": "nhl/nyi.png"
+  },
+  {
+    "league": "nhl",
+    "id": "fla",
+    "logo": "nhl/fla.png"
+  },
+  {
+    "league": "nhl",
+    "id": "pit",
+    "logo": "nhl/pit.png"
+  },
+  {
+    "league": "nhl",
+    "id": "lak",
+    "logo": "nhl/lak.png"
+  },
+  {
+    "league": "nhl",
+    "id": "vgk",
+    "logo": "nhl/vgk.png"
+  },
+  {
+    "league": "nhl",
+    "id": "chi",
+    "logo": "nhl/chi.png"
+  },
+  {
+    "league": "nhl",
+    "id": "stl",
+    "logo": "nhl/stl.png"
+  },
+  {
+    "league": "nhl",
+    "id": "edm",
+    "logo": "nhl/edm.png"
+  },
+  {
+    "league": "mlb",
+    "id": "ari",
+    "logo": "mlb/ari.png"
+  },
+  {
+    "league": "mlb",
+    "id": "tex",
+    "logo": "mlb/tex.png"
+  },
+  {
+    "league": "mlb",
+    "id": "min",
+    "logo": "mlb/min.png"
+  },
+  {
+    "league": "mlb",
+    "id": "lad",
+    "logo": "mlb/lad.png"
+  },
+  {
+    "league": "mlb",
+    "id": "mil",
+    "logo": "mlb/mil.png"
+  },
+  {
+    "league": "mlb",
+    "id": "chc",
+    "logo": "mlb/chc.png"
+  },
+  {
+    "league": "mlb",
+    "id": "bal",
+    "logo": "mlb/bal.png"
+  },
+  {
+    "league": "mlb",
+    "id": "chw",
+    "logo": "mlb/chw.png"
+  },
+  {
+    "league": "mlb",
+    "id": "tb",
+    "logo": "mlb/tb.png"
+  },
+  {
+    "league": "mlb",
+    "id": "phi",
+    "logo": "mlb/phi.png"
+  },
+  {
+    "league": "mlb",
+    "id": "bos",
+    "logo": "mlb/bos.png"
+  },
+  {
+    "league": "mlb",
+    "id": "laa",
+    "logo": "mlb/laa.png"
+  },
+  {
+    "league": "mlb",
+    "id": "ath",
+    "logo": "mlb/ath.png"
+  },
+  {
+    "league": "mlb",
+    "id": "atl",
+    "logo": "mlb/atl.png"
+  },
+  {
+    "league": "mlb",
+    "id": "sf",
+    "logo": "mlb/sf.png"
+  },
+  {
+    "league": "mlb",
+    "id": "kc",
+    "logo": "mlb/kc.png"
+  },
+  {
+    "league": "mlb",
+    "id": "det",
+    "logo": "mlb/det.png"
+  },
+  {
+    "league": "mlb",
+    "id": "sd",
+    "logo": "mlb/sd.png"
+  },
+  {
+    "league": "mlb",
+    "id": "tor",
+    "logo": "mlb/tor.png"
+  },
+  {
+    "league": "mlb",
+    "id": "wsh",
+    "logo": "mlb/wsh.png"
+  },
+  {
+    "league": "mlb",
+    "id": "sea",
+    "logo": "mlb/sea.png"
+  },
+  {
+    "league": "mlb",
+    "id": "cle",
+    "logo": "mlb/cle.png"
+  },
+  {
+    "league": "mlb",
+    "id": "col",
+    "logo": "mlb/col.png"
+  },
+  {
+    "league": "mlb",
+    "id": "hou",
+    "logo": "mlb/hou.png"
+  },
+  {
+    "league": "mlb",
+    "id": "pit",
+    "logo": "mlb/pit.png"
+  },
+  {
+    "league": "mlb",
+    "id": "cin",
+    "logo": "mlb/cin.png"
+  },
+  {
+    "league": "mlb",
+    "id": "mia",
+    "logo": "mlb/mia.png"
+  },
+  {
+    "league": "mlb",
+    "id": "nyy",
+    "logo": "mlb/nyy.png"
+  },
+  {
+    "league": "mlb",
+    "id": "stl",
+    "logo": "mlb/stl.png"
+  },
+  {
+    "league": "mlb",
+    "id": "nym",
+    "logo": "mlb/nym.png"
+  }
+]

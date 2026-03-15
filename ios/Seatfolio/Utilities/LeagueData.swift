@@ -194,7 +194,9 @@ nonisolated struct LeagueData {
             Team(id: "tor_mls", name: "Toronto FC", city: "Toronto", abbreviation: "TOR", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/9919.png", primaryColor: "B81137", secondaryColor: "455560", apiAbbr: "TOR"),
             Team(id: "van_mls", name: "Whitecaps", city: "Vancouver", abbreviation: "VAN", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/9920.png", primaryColor: "00245E", secondaryColor: "9DC2EA", apiAbbr: "VAN"),
             Team(id: "dc", name: "D.C. United", city: "Washington", abbreviation: "DC", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/9905.png", primaryColor: "000000", secondaryColor: "EF3E42", apiAbbr: "DC"),
-            Team(id: "cha_mls", name: "Charlotte FC", city: "Charlotte", abbreviation: "CLT", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/23998.png", primaryColor: "1A85C8", secondaryColor: "000000", apiAbbr: "CLT")
+            Team(id: "cha_mls", name: "Charlotte FC", city: "Charlotte", abbreviation: "CLT", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/23998.png", primaryColor: "1A85C8", secondaryColor: "000000", apiAbbr: "CLT"),
+            Team(id: "dal_mls", name: "FC Dallas", city: "Dallas", abbreviation: "DAL", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/9904.png", primaryColor: "BF0D3E", secondaryColor: "002D62", apiAbbr: "DAL"),
+            Team(id: "chi_mls", name: "Chicago Fire", city: "Chicago", abbreviation: "CHI", logoURL: "https://a.espncdn.com/i/teamlogos/soccer/500/9903.png", primaryColor: "141B4D", secondaryColor: "DB0030", apiAbbr: "CHI")
         ]
     )
 
