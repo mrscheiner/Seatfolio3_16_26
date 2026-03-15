@@ -228,7 +228,14 @@ nonisolated struct LeagueData {
             if nameLower.contains(cityLower) || cityLower.contains(nameLower) {
                 return team.name
             }
-            let standaloneNamePrefixes = ["FC ", "CF ", "D.C.", "LAFC", "NYCFC", "Inter ", "Real ", "Sporting ", "LA ", "St. "]
+            let standaloneNames: Set<String> = [
+                "LAFC", "NYCFC", "D.C. United", "Real Salt Lake", "Sporting KC",
+                "Inter Miami", "LA Galaxy", "Red Bulls"
+            ]
+            if standaloneNames.contains(team.name) {
+                return team.name
+            }
+            let standaloneNamePrefixes = ["FC ", "CF ", "St. "]
             if standaloneNamePrefixes.contains(where: { team.name.hasPrefix($0) }) {
                 return team.name
             }

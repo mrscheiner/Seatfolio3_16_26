@@ -100,7 +100,7 @@ struct AnalyticsView: View {
                         size: 36
                     )
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(pass.teamName)
+                        Text(pass.displayTeamName)
                             .font(.headline)
                             .foregroundStyle(.white)
                         Text("\(pass.seasonLabel) Season")

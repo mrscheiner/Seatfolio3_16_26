@@ -20,7 +20,7 @@ struct SeasonPassSelectorView: View {
                             )
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(pass.teamName)
+                                Text(pass.displayTeamName)
                                     .font(.body.weight(.medium))
                                     .foregroundStyle(.primary)
                                 Text(pass.seasonLabel)

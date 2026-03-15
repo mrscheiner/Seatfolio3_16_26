@@ -31,7 +31,7 @@ struct SettingsView: View {
                                     size: 40
                                 )
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(pass.teamName)
+                                    Text(pass.displayTeamName)
                                         .font(.body.weight(.medium))
                                     Text(pass.seasonLabel)
                                         .font(.caption)
@@ -239,7 +239,7 @@ struct SettingsView: View {
                         size: 36
                     )
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(pass.teamName)
+                        Text(pass.displayTeamName)
                             .font(.headline)
                             .foregroundStyle(.white)
                         Text("\(pass.seasonLabel) Season")

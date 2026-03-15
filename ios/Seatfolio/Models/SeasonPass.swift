@@ -73,4 +73,11 @@ nonisolated struct SeasonPass: Codable, Identifiable, Hashable, Sendable {
     var netProfitLoss: Double {
         totalRevenue - totalSeasonCost
     }
+
+    var displayTeamName: String {
+        if let team = LeagueData.team(for: teamId) {
+            return LeagueData.displayName(for: team, leagueId: leagueId)
+        }
+        return teamName
+    }
 }

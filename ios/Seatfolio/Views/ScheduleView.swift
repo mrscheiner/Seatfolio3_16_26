@@ -196,7 +196,7 @@ struct ScheduleView: View {
                         size: 36
                     )
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(pass.teamName)
+                        Text(pass.displayTeamName)
                             .font(.headline)
                             .foregroundStyle(.white)
                         let totalSeats = pass.seatPairs.count * pass.games.count * 2

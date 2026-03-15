@@ -151,7 +151,7 @@ struct HomeView: View {
                     )
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(p.teamName)
+                        Text(p.displayTeamName)
                             .font(.title2.bold())
                             .foregroundStyle(.white)
                         Text("\(p.seasonLabel) Season")
@@ -217,7 +217,7 @@ struct HomeView: View {
                     )
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(pass?.teamName ?? "No Pass")
+                        Text(pass?.displayTeamName ?? "No Pass")
                             .font(.title2.bold())
                             .foregroundStyle(.white)
                         Text("\(pass?.seasonLabel ?? "") Season")

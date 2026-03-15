@@ -139,7 +139,7 @@ struct SetupView: View {
                             )
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("\(team.city) \(team.name)")
+                                Text(LeagueData.displayName(for: team, leagueId: selectedLeague?.id ?? ""))
                                     .font(.body.weight(.medium))
                                     .foregroundStyle(.primary)
                             }
@@ -359,7 +359,7 @@ struct SetupView: View {
         let pass = SeasonPass(
             leagueId: league.id,
             teamId: team.id,
-            teamName: "\(team.city) \(team.name)",
+            teamName: LeagueData.displayName(for: team, leagueId: league.id),
             seasonLabel: seasonLabel,
             seatPairs: seatPairs,
             sellAsPairsOnly: sellAsPairsOnly
