@@ -1,61 +1,44 @@
-//
-//  ContentView.swift
-//  Seatfolio
-//
-//  Created by Rork on March 13, 2026.
-//
-
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Environment(DataStore.self) private var store
+    @State private var isLaunching: Bool = true
+    @State private var splashRotation: Double = 0
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
+        Group {
+            if isLaunching {
+                launchScreen
+            } else if store.hasAnyPass {
+                MainTabView()
+            } else {
+                SetupView()
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+        .animation(.easeInOut(duration: 0.35), value: isLaunching)
+        .task {
+            store.restoreLastActivePass()
+            try? await Task.sleep(for: .seconds(1.5))
+            withAnimation {
+                isLaunching = false
             }
         }
     }
-}
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+    private var launchScreen: some View {
+        ZStack {
+            Color(hex: "001F3F")
+                .ignoresSafeArea()
+            Image("SeatfolioFullLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 170, height: 170)
+                .rotationEffect(.degrees(splashRotation))
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.2)) {
+                splashRotation = 360
+            }
+        }
+    }
 }
