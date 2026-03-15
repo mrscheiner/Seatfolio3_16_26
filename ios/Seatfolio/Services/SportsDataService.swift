@@ -20,6 +20,40 @@ nonisolated enum ScheduleError: LocalizedError, Sendable {
     }
 }
 
+nonisolated struct ESPNScheduleResponse: Decodable, Sendable {
+    let events: [ESPNEvent]
+}
+
+nonisolated struct ESPNEvent: Decodable, Sendable {
+    let id: String
+    let date: String
+    let competitions: [ESPNCompetition]
+    let seasonType: ESPNSeasonType?
+}
+
+nonisolated struct ESPNSeasonType: Decodable, Sendable {
+    let name: String?
+}
+
+nonisolated struct ESPNCompetition: Decodable, Sendable {
+    let competitors: [ESPNCompetitor]
+    let venue: ESPNVenue?
+}
+
+nonisolated struct ESPNCompetitor: Decodable, Sendable {
+    let homeAway: String
+    let team: ESPNTeam
+}
+
+nonisolated struct ESPNTeam: Decodable, Sendable {
+    let abbreviation: String
+    let displayName: String?
+}
+
+nonisolated struct ESPNVenue: Decodable, Sendable {
+    let fullName: String?
+}
+
 nonisolated struct SDScheduleGame: Decodable, Sendable {
     let gameID: Int?
     let gameKey: String?
@@ -94,7 +128,17 @@ nonisolated private let leagueConfigs: [String: LeagueEndpointConfig] = [
     "nfl": LeagueEndpointConfig(basePath: "nfl/scores/json", endpoint: "Schedules", hasPreseason: true),
     "nhl": LeagueEndpointConfig(basePath: "nhl/scores/json", endpoint: "Games", hasPreseason: true),
     "mlb": LeagueEndpointConfig(basePath: "mlb/scores/json", endpoint: "Games", hasPreseason: false),
-    "mls": LeagueEndpointConfig(basePath: "soccer/scores/json", endpoint: "Schedule/MLS", hasPreseason: false),
+]
+
+nonisolated private let mlsEspnTeamIds: [String: String] = [
+    "ATL": "18418", "ATX": "20906", "MTL": "9720", "CLT": "21300",
+    "CHI": "182", "COL": "184", "CLB": "183", "DC": "193",
+    "CIN": "18267", "DAL": "185", "HOU": "6077", "MIA": "20232",
+    "LA": "187", "LAFC": "18966", "MIN": "17362", "NSH": "18986",
+    "NE": "189", "NYC": "17606", "ORL": "12011", "PHI": "10739",
+    "POR": "9723", "RSL": "4771", "RBNY": "190", "SD": "22529",
+    "SJ": "191", "SEA": "9726", "SKC": "186", "STL": "21812",
+    "TOR": "7318", "VAN": "9727",
 ]
 
 nonisolated class SportsDataService: @unchecked Sendable {
@@ -103,6 +147,10 @@ nonisolated class SportsDataService: @unchecked Sendable {
     private let hardcodedAPIKey = "9b42211a91c1440795cd6217baa9e334"
 
     nonisolated func fetchSchedule(leagueId: String, teamAbbr: String, season: String) async throws -> [Game] {
+        if leagueId == "mls" {
+            return try await fetchMLSScheduleFromESPN(teamAbbr: teamAbbr, season: season)
+        }
+
         let apiKey = hardcodedAPIKey
         guard !apiKey.isEmpty else { throw ScheduleError.noAPIKey }
         guard let config = leagueConfigs[leagueId] else { throw ScheduleError.unsupportedLeague(leagueId) }
@@ -238,6 +286,113 @@ nonisolated class SportsDataService: @unchecked Sendable {
 
     private nonisolated func formatTime(_ str: String) -> String {
         guard let date = parseDate(str) else { return "TBD" }
+        let df = DateFormatter()
+        df.dateFormat = "h:mm a 'EST'"
+        df.timeZone = TimezoneHelper.est
+        return df.string(from: date)
+    }
+
+    private nonisolated func fetchMLSScheduleFromESPN(teamAbbr: String, season: String) async throws -> [Game] {
+        guard let espnId = mlsEspnTeamIds[teamAbbr] else {
+            let available = mlsEspnTeamIds.keys.sorted().joined(separator: ", ")
+            throw ScheduleError.noHomeGames("\(teamAbbr) (available MLS teams: \(available))")
+        }
+
+        let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/teams/\(espnId)/schedule?season=\(season)"
+        guard let url = URL(string: urlString) else { throw ScheduleError.invalidURL(urlString) }
+
+        print("[ESPN-MLS] Fetching schedule for \(teamAbbr) (ESPN ID: \(espnId)), season \(season)")
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw ScheduleError.httpError(code, "ESPN MLS schedule request failed")
+        }
+
+        let espnResponse = try JSONDecoder().decode(ESPNScheduleResponse.self, from: data)
+        print("[ESPN-MLS] Got \(espnResponse.events.count) total events")
+
+        let homeGames: [Game] = espnResponse.events.compactMap { event in
+            guard let competition = event.competitions.first else { return nil }
+            let homeCompetitor = competition.competitors.first { $0.homeAway == "home" }
+            let awayCompetitor = competition.competitors.first { $0.homeAway == "away" }
+
+            guard let home = homeCompetitor, home.team.abbreviation == teamAbbr else { return nil }
+            guard let away = awayCompetitor else { return nil }
+
+            guard let date = parseESPNDate(event.date) else { return nil }
+
+            let opponentAbbr = away.team.abbreviation
+            let opponentName = LeagueData.teamNameForAPIAbbr(opponentAbbr, leagueId: "mls")
+            let venueName = competition.venue?.fullName ?? ""
+
+            let timeStr = formatTime(from: date)
+
+            let seasonTypeName = event.seasonType?.name?.lowercased() ?? "regular season"
+            let gameType: GameType
+            if seasonTypeName.contains("pre") {
+                gameType = .preseason
+            } else if seasonTypeName.contains("post") || seasonTypeName.contains("playoff") || seasonTypeName.contains("cup") {
+                gameType = .playoff
+            } else {
+                gameType = .regular
+            }
+
+            return Game(
+                id: event.id,
+                date: date,
+                opponent: opponentName,
+                opponentAbbr: opponentAbbr,
+                venueName: venueName,
+                time: timeStr,
+                gameNumber: 0,
+                gameLabel: "",
+                type: gameType,
+                isHome: true
+            )
+        }
+
+        print("[ESPN-MLS] \(homeGames.count) home games for \(teamAbbr)")
+
+        var allGames = homeGames.sorted { $0.date < $1.date }
+
+        var regCount = 0
+        var playoffCount = 0
+        allGames = allGames.map { game in
+            var g = game
+            switch g.type {
+            case .preseason:
+                regCount += 1
+                g.gameNumber = regCount
+                g.gameLabel = "PS\(regCount)"
+            case .regular:
+                regCount += 1
+                g.gameNumber = regCount
+                g.gameLabel = "\(regCount)"
+            case .playoff:
+                playoffCount += 1
+                g.gameNumber = playoffCount
+                g.gameLabel = "P\(playoffCount)"
+            }
+            return g
+        }
+
+        if allGames.isEmpty {
+            throw ScheduleError.noHomeGames(teamAbbr)
+        }
+
+        return allGames
+    }
+
+    private nonisolated func parseESPNDate(_ str: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        if let d = formatter.date(from: str) { return d }
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.date(from: str)
+    }
+
+    private nonisolated func formatTime(from date: Date) -> String {
         let df = DateFormatter()
         df.dateFormat = "h:mm a 'EST'"
         df.timeZone = TimezoneHelper.est

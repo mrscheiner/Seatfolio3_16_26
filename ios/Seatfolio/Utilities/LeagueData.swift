@@ -216,9 +216,25 @@ nonisolated struct LeagueData {
 
     static func teamNameForAPIAbbr(_ abbr: String, leagueId: String) -> String {
         if let team = teamByAPIAbbr(abbr, leagueId: leagueId) {
-            return "\(team.city) \(team.name)"
+            return displayName(for: team, leagueId: leagueId)
         }
         return abbr
+    }
+
+    static func displayName(for team: Team, leagueId: String) -> String {
+        if leagueId == "mls" {
+            let nameLower = team.name.lowercased()
+            let cityLower = team.city.lowercased()
+            if nameLower.contains(cityLower) || cityLower.contains(nameLower) {
+                return team.name
+            }
+            let standaloneNamePrefixes = ["FC ", "CF ", "D.C.", "LAFC", "NYCFC", "Inter ", "Real ", "Sporting ", "LA ", "St. "]
+            if standaloneNamePrefixes.contains(where: { team.name.hasPrefix($0) }) {
+                return team.name
+            }
+            return "\(team.city) \(team.name)"
+        }
+        return "\(team.city) \(team.name)"
     }
 
     static func logoURLForAPIAbbr(_ abbr: String, leagueId: String) -> String? {
