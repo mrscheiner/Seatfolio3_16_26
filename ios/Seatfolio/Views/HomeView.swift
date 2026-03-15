@@ -8,11 +8,6 @@ struct HomeView: View {
     private var pass: SeasonPass? { store.activePass }
     private var theme: TeamTheme { store.currentTheme }
 
-    private var teamLogoURL: String? {
-        guard let pass else { return nil }
-        return LeagueData.team(for: pass.teamId)?.logoURL
-    }
-
     private var recentSales: [Sale] {
         guard let pass else { return [] }
         return pass.sales.sorted { $0.soldDate > $1.soldDate }
@@ -143,23 +138,17 @@ struct HomeView: View {
 
     private func passHeaderCard(for p: SeasonPass) -> some View {
         let pTheme = TeamThemeProvider.theme(for: p.teamId)
-        let logoURL = LeagueData.team(for: p.teamId)?.logoURL
 
         return Button {
             showEditPass = true
         } label: {
             VStack(spacing: 12) {
                 HStack(spacing: 14) {
-                    if let logoURL, let url = URL(string: logoURL) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image.resizable().aspectRatio(contentMode: .fit)
-                            } else {
-                                Circle().fill(.white.opacity(0.3))
-                            }
-                        }
-                        .frame(width: 64, height: 64)
-                    }
+                    TeamLogoView(
+                        teamId: p.teamId,
+                        leagueId: p.leagueId,
+                        size: 64
+                    )
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(p.teamName)
@@ -221,16 +210,11 @@ struct HomeView: View {
         } label: {
             VStack(spacing: 12) {
                 HStack(spacing: 14) {
-                    if let logoURL = teamLogoURL, let url = URL(string: logoURL) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image.resizable().aspectRatio(contentMode: .fit)
-                            } else {
-                                Circle().fill(.white.opacity(0.3))
-                            }
-                        }
-                        .frame(width: 64, height: 64)
-                    }
+                    TeamLogoView(
+                        teamId: pass?.teamId ?? "",
+                        leagueId: pass?.leagueId ?? "",
+                        size: 64
+                    )
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(pass?.teamName ?? "No Pass")
@@ -466,29 +450,18 @@ struct RecentSaleCard: View {
         return sale.opponent.isEmpty ? (game?.opponent ?? "Unknown") : sale.opponent
     }
 
-    private var opponentLogoURL: String? {
-        let effectiveLeague = sale.leagueId.isEmpty ? leagueId : sale.leagueId
-        if !sale.opponentAbbr.isEmpty {
-            if let url = LeagueData.logoURLForAPIAbbr(sale.opponentAbbr, leagueId: effectiveLeague) {
-                return url
-            }
-            if let url = LeagueData.logoURLForAPIAbbrAnyLeague(sale.opponentAbbr) {
-                return url
-            }
-        }
-        if let game, !game.opponentAbbr.isEmpty {
-            if let url = LeagueData.logoURLForAPIAbbr(game.opponentAbbr, leagueId: effectiveLeague) {
-                return url
-            }
-            if let url = LeagueData.logoURLForAPIAbbrAnyLeague(game.opponentAbbr) {
-                return url
-            }
-        }
-        let name = sale.opponent.isEmpty ? (game?.opponent ?? "") : sale.opponent
-        if let url = LeagueData.logoURLByName(name) {
-            return url
-        }
-        return nil
+    private var effectiveLeague: String {
+        sale.leagueId.isEmpty ? leagueId : sale.leagueId
+    }
+
+    private var effectiveAbbr: String {
+        if !sale.opponentAbbr.isEmpty { return sale.opponentAbbr }
+        if let game, !game.opponentAbbr.isEmpty { return game.opponentAbbr }
+        return ""
+    }
+
+    private var effectiveName: String {
+        sale.opponent.isEmpty ? (game?.opponent ?? "") : sale.opponent
     }
 
     var body: some View {
@@ -500,18 +473,12 @@ struct RecentSaleCard: View {
             }
 
             HStack(spacing: 12) {
-                if let logoURL = opponentLogoURL, let url = URL(string: logoURL) {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image {
-                            image.resizable().aspectRatio(contentMode: .fit)
-                        } else {
-                            opponentFallbackIcon
-                        }
-                    }
-                    .frame(width: 40, height: 40)
-                } else {
-                    opponentFallbackIcon
-                }
+                TeamLogoView(
+                    apiAbbr: effectiveAbbr,
+                    teamName: effectiveName,
+                    leagueId: effectiveLeague,
+                    size: 40
+                )
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(fullOpponentName)

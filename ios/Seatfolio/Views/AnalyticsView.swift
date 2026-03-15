@@ -94,16 +94,11 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 8) {
             if let pass = store.activePass {
                 HStack(spacing: 10) {
-                    if let team = LeagueData.team(for: pass.teamId), let url = URL(string: team.logoURL) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image.resizable().aspectRatio(contentMode: .fit)
-                            } else {
-                                Circle().fill(.white.opacity(0.2))
-                            }
-                        }
-                        .frame(width: 36, height: 36)
-                    }
+                    TeamLogoView(
+                        teamId: pass.teamId,
+                        leagueId: pass.leagueId,
+                        size: 36
+                    )
                     VStack(alignment: .leading, spacing: 2) {
                         Text(pass.teamName)
                             .font(.headline)

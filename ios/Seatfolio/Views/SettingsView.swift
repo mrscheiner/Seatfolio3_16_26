@@ -25,32 +25,11 @@ struct SettingsView: View {
                     Section("Season Passes") {
                         ForEach(store.seasonPasses) { pass in
                             HStack(spacing: 12) {
-                                let logoURL = LeagueData.team(for: pass.teamId)?.logoURL ?? ""
-                                if !logoURL.isEmpty, let url = URL(string: logoURL) {
-                                    AsyncImage(url: url) { phase in
-                                        if let image = phase.image {
-                                            image.resizable().aspectRatio(contentMode: .fit)
-                                        } else {
-                                            Circle()
-                                                .fill(TeamThemeProvider.theme(for: pass.teamId).primary)
-                                                .overlay {
-                                                    Text(String(pass.teamName.prefix(2)))
-                                                        .font(.caption.bold())
-                                                        .foregroundStyle(.white)
-                                                }
-                                        }
-                                    }
-                                    .frame(width: 40, height: 40)
-                                } else {
-                                    Circle()
-                                        .fill(TeamThemeProvider.theme(for: pass.teamId).primary)
-                                        .frame(width: 40, height: 40)
-                                        .overlay {
-                                            Text(String(pass.teamName.prefix(2)))
-                                                .font(.caption.bold())
-                                                .foregroundStyle(.white)
-                                        }
-                                }
+                                TeamLogoView(
+                                    teamId: pass.teamId,
+                                    leagueId: pass.leagueId,
+                                    size: 40
+                                )
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(pass.teamName)
                                         .font(.body.weight(.medium))
@@ -254,16 +233,11 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             if let pass = store.activePass {
                 HStack(spacing: 10) {
-                    if let team = LeagueData.team(for: pass.teamId), let url = URL(string: team.logoURL) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image.resizable().aspectRatio(contentMode: .fit)
-                            } else {
-                                Circle().fill(.white.opacity(0.3))
-                            }
-                        }
-                        .frame(width: 36, height: 36)
-                    }
+                    TeamLogoView(
+                        teamId: pass.teamId,
+                        leagueId: pass.leagueId,
+                        size: 36
+                    )
                     VStack(alignment: .leading, spacing: 2) {
                         Text(pass.teamName)
                             .font(.headline)

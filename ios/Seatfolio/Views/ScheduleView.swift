@@ -190,16 +190,11 @@ struct ScheduleView: View {
         VStack(alignment: .leading, spacing: 6) {
             if let pass = store.activePass {
                 HStack(spacing: 10) {
-                    if let team = LeagueData.team(for: pass.teamId), let url = URL(string: team.logoURL) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image.resizable().aspectRatio(contentMode: .fit)
-                            } else {
-                                Circle().fill(.white.opacity(0.3))
-                            }
-                        }
-                        .frame(width: 36, height: 36)
-                    }
+                    TeamLogoView(
+                        teamId: pass.teamId,
+                        leagueId: pass.leagueId,
+                        size: 36
+                    )
                     VStack(alignment: .leading, spacing: 2) {
                         Text(pass.teamName)
                             .font(.headline)
@@ -358,9 +353,7 @@ struct ScheduleGameCard: View {
         !sales.isEmpty && sales.allSatisfy { $0.status == .paid }
     }
 
-    private var opponentLogoURL: String? {
-        LeagueData.logoURLForAPIAbbr(game.opponentAbbr, leagueId: leagueId)
-    }
+
 
     private var localTime: String {
         TimezoneHelper.formatGameTime(game.date, teamId: teamId)
@@ -403,16 +396,12 @@ struct ScheduleGameCard: View {
 
                     VStack(alignment: .leading, spacing: 5) {
                         HStack(spacing: 8) {
-                            if let logoURL = opponentLogoURL, let url = URL(string: logoURL) {
-                                AsyncImage(url: url) { phase in
-                                    if let image = phase.image {
-                                        image.resizable().aspectRatio(contentMode: .fit)
-                                    } else {
-                                        Circle().fill(adaptiveTextColor.opacity(0.3))
-                                    }
-                                }
-                                .frame(width: 28, height: 28)
-                            }
+                            TeamLogoView(
+                                apiAbbr: game.opponentAbbr,
+                                teamName: game.opponent,
+                                leagueId: leagueId,
+                                size: 28
+                            )
 
                             if !game.displayLabel.isEmpty {
                                 Text("#\(game.displayLabel)")

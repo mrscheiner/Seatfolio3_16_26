@@ -30,10 +30,7 @@ struct GameDetailView: View {
         sales.reduce(0) { $0 + $1.price }
     }
 
-    private var opponentLogoURL: String? {
-        guard let pass = store.activePass else { return nil }
-        return LeagueData.logoURLForAPIAbbr(game.opponentAbbr, leagueId: pass.leagueId)
-    }
+
 
     private var fullOpponentName: String {
         guard let pass = store.activePass, !game.opponentAbbr.isEmpty else { return game.opponent }
@@ -91,16 +88,12 @@ struct GameDetailView: View {
     private var gameHeader: some View {
         VStack(spacing: 12) {
             HStack(spacing: 14) {
-                if let logoURL = opponentLogoURL, let url = URL(string: logoURL) {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image {
-                            image.resizable().aspectRatio(contentMode: .fit)
-                        } else {
-                            Circle().fill(.white.opacity(0.2))
-                        }
-                    }
-                    .frame(width: 56, height: 56)
-                }
+                TeamLogoView(
+                    apiAbbr: game.opponentAbbr,
+                    teamName: game.opponent,
+                    leagueId: store.activePass?.leagueId ?? "",
+                    size: 56
+                )
 
                 VStack(alignment: .leading, spacing: 4) {
                     if !game.displayLabel.isEmpty {

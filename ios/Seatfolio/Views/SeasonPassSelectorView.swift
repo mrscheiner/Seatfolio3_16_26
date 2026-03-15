@@ -13,33 +13,11 @@ struct SeasonPassSelectorView: View {
                 Section {
                     ForEach(store.seasonPasses) { pass in
                         HStack(spacing: 14) {
-                            let theme = TeamThemeProvider.theme(for: pass.teamId)
-                            let logoURL = LeagueData.team(for: pass.teamId)?.logoURL ?? ""
-                            if !logoURL.isEmpty, let url = URL(string: logoURL) {
-                                AsyncImage(url: url) { phase in
-                                    if let image = phase.image {
-                                        image.resizable().aspectRatio(contentMode: .fit)
-                                    } else {
-                                        Circle()
-                                            .fill(LinearGradient(colors: [theme.primary, theme.secondary], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                            .overlay {
-                                                Text(String(pass.teamName.prefix(2)).uppercased())
-                                                    .font(.caption.bold())
-                                                    .foregroundStyle(.white)
-                                            }
-                                    }
-                                }
-                                .frame(width: 44, height: 44)
-                            } else {
-                                Circle()
-                                    .fill(LinearGradient(colors: [theme.primary, theme.secondary], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .frame(width: 44, height: 44)
-                                    .overlay {
-                                        Text(String(pass.teamName.prefix(2)).uppercased())
-                                            .font(.caption.bold())
-                                            .foregroundStyle(.white)
-                                    }
-                            }
+                            TeamLogoView(
+                                teamId: pass.teamId,
+                                leagueId: pass.leagueId,
+                                size: 44
+                            )
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(pass.teamName)
