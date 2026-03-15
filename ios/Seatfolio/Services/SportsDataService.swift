@@ -298,90 +298,110 @@ nonisolated class SportsDataService: @unchecked Sendable {
             throw ScheduleError.noHomeGames("\(teamAbbr) (available MLS teams: \(available))")
         }
 
-        let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/teams/\(espnId)/schedule?season=\(season)"
-        guard let url = URL(string: urlString) else { throw ScheduleError.invalidURL(urlString) }
-
-        print("[ESPN-MLS] Fetching schedule for \(teamAbbr) (ESPN ID: \(espnId)), season \(season)")
-
-        let (data, response) = try await URLSession.shared.data(from: url)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            throw ScheduleError.httpError(code, "ESPN MLS schedule request failed")
+        let currentYear = Calendar.current.component(.year, from: Date())
+        var seasonsToTry = [season]
+        if season != "\(currentYear)" {
+            seasonsToTry.append("\(currentYear)")
+        }
+        if season != "\(currentYear - 1)" {
+            seasonsToTry.append("\(currentYear - 1)")
         }
 
-        let espnResponse = try JSONDecoder().decode(ESPNScheduleResponse.self, from: data)
-        print("[ESPN-MLS] Got \(espnResponse.events.count) total events")
+        for seasonAttempt in seasonsToTry {
+            let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/teams/\(espnId)/schedule?season=\(seasonAttempt)"
+            guard let url = URL(string: urlString) else { continue }
 
-        let homeGames: [Game] = espnResponse.events.compactMap { event in
-            guard let competition = event.competitions.first else { return nil }
-            let homeCompetitor = competition.competitors.first { $0.homeAway == "home" }
-            let awayCompetitor = competition.competitors.first { $0.homeAway == "away" }
+            print("[ESPN-MLS] Fetching schedule for \(teamAbbr) (ESPN ID: \(espnId)), season \(seasonAttempt)")
 
-            guard let home = homeCompetitor, home.team.abbreviation == teamAbbr else { return nil }
-            guard let away = awayCompetitor else { return nil }
+            do {
+                let (data, response) = try await URLSession.shared.data(from: url)
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+                    print("[ESPN-MLS] HTTP \(code) for season \(seasonAttempt), trying next")
+                    continue
+                }
 
-            guard let date = parseESPNDate(event.date) else { return nil }
+                let espnResponse = try JSONDecoder().decode(ESPNScheduleResponse.self, from: data)
+                print("[ESPN-MLS] Got \(espnResponse.events.count) total events for season \(seasonAttempt)")
 
-            let opponentAbbr = away.team.abbreviation
-            let opponentName = LeagueData.teamNameForAPIAbbr(opponentAbbr, leagueId: "mls")
-            let venueName = competition.venue?.fullName ?? ""
+                let homeGames: [Game] = espnResponse.events.compactMap { event in
+                    guard let competition = event.competitions.first else { return nil }
+                    let homeCompetitor = competition.competitors.first { $0.homeAway == "home" }
+                    let awayCompetitor = competition.competitors.first { $0.homeAway == "away" }
 
-            let timeStr = formatTime(from: date)
+                    guard let home = homeCompetitor, home.team.abbreviation == teamAbbr else { return nil }
+                    guard let away = awayCompetitor else { return nil }
 
-            let seasonTypeName = event.seasonType?.name?.lowercased() ?? "regular season"
-            let gameType: GameType
-            if seasonTypeName.contains("pre") {
-                gameType = .preseason
-            } else if seasonTypeName.contains("post") || seasonTypeName.contains("playoff") || seasonTypeName.contains("cup") {
-                gameType = .playoff
-            } else {
-                gameType = .regular
+                    guard let date = parseESPNDate(event.date) else {
+                        print("[ESPN-MLS] Failed to parse date: \(event.date)")
+                        return nil
+                    }
+
+                    let opponentAbbr = away.team.abbreviation
+                    let opponentName = LeagueData.teamNameForAPIAbbr(opponentAbbr, leagueId: "mls")
+                    let venueName = competition.venue?.fullName ?? ""
+
+                    let timeStr = formatTime(from: date)
+
+                    let seasonTypeName = event.seasonType?.name?.lowercased() ?? "regular season"
+                    let gameType: GameType
+                    if seasonTypeName.contains("pre") {
+                        gameType = .preseason
+                    } else if seasonTypeName.contains("post") || seasonTypeName.contains("playoff") || seasonTypeName.contains("cup") {
+                        gameType = .playoff
+                    } else {
+                        gameType = .regular
+                    }
+
+                    return Game(
+                        id: event.id,
+                        date: date,
+                        opponent: opponentName,
+                        opponentAbbr: opponentAbbr,
+                        venueName: venueName,
+                        time: timeStr,
+                        gameNumber: 0,
+                        gameLabel: "",
+                        type: gameType,
+                        isHome: true
+                    )
+                }
+
+                print("[ESPN-MLS] \(homeGames.count) home games for \(teamAbbr) in season \(seasonAttempt)")
+
+                if homeGames.isEmpty { continue }
+
+                var allGames = homeGames.sorted { $0.date < $1.date }
+
+                var regCount = 0
+                var playoffCount = 0
+                allGames = allGames.map { game in
+                    var g = game
+                    switch g.type {
+                    case .preseason:
+                        regCount += 1
+                        g.gameNumber = regCount
+                        g.gameLabel = "PS\(regCount)"
+                    case .regular:
+                        regCount += 1
+                        g.gameNumber = regCount
+                        g.gameLabel = "\(regCount)"
+                    case .playoff:
+                        playoffCount += 1
+                        g.gameNumber = playoffCount
+                        g.gameLabel = "P\(playoffCount)"
+                    }
+                    return g
+                }
+
+                return allGames
+            } catch {
+                print("[ESPN-MLS] Error fetching season \(seasonAttempt): \(error.localizedDescription)")
+                continue
             }
-
-            return Game(
-                id: event.id,
-                date: date,
-                opponent: opponentName,
-                opponentAbbr: opponentAbbr,
-                venueName: venueName,
-                time: timeStr,
-                gameNumber: 0,
-                gameLabel: "",
-                type: gameType,
-                isHome: true
-            )
         }
 
-        print("[ESPN-MLS] \(homeGames.count) home games for \(teamAbbr)")
-
-        var allGames = homeGames.sorted { $0.date < $1.date }
-
-        var regCount = 0
-        var playoffCount = 0
-        allGames = allGames.map { game in
-            var g = game
-            switch g.type {
-            case .preseason:
-                regCount += 1
-                g.gameNumber = regCount
-                g.gameLabel = "PS\(regCount)"
-            case .regular:
-                regCount += 1
-                g.gameNumber = regCount
-                g.gameLabel = "\(regCount)"
-            case .playoff:
-                playoffCount += 1
-                g.gameNumber = playoffCount
-                g.gameLabel = "P\(playoffCount)"
-            }
-            return g
-        }
-
-        if allGames.isEmpty {
-            throw ScheduleError.noHomeGames(teamAbbr)
-        }
-
-        return allGames
+        throw ScheduleError.noHomeGames(teamAbbr)
     }
 
     private nonisolated func parseESPNDate(_ str: String) -> Date? {
@@ -389,7 +409,27 @@ nonisolated class SportsDataService: @unchecked Sendable {
         formatter.formatOptions = [.withInternetDateTime]
         if let d = formatter.date(from: str) { return d }
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.date(from: str)
+        if let d = formatter.date(from: str) { return d }
+
+        let withSeconds = str.replacingOccurrences(
+            of: #"(\d{2}:\d{2})Z"#,
+            with: "$1:00Z",
+            options: .regularExpression
+        )
+        if withSeconds != str {
+            formatter.formatOptions = [.withInternetDateTime]
+            if let d = formatter.date(from: withSeconds) { return d }
+        }
+
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.timeZone = TimeZone(identifier: "UTC")
+        for fmt in ["yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mmZ", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm'Z'"] {
+            df.dateFormat = fmt
+            if let d = df.date(from: str) { return d }
+        }
+
+        return nil
     }
 
     private nonisolated func formatTime(from date: Date) -> String {
@@ -419,7 +459,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
         }
 
         switch leagueId {
-        case "nfl":
+        case "nfl", "mls":
             return "\(startYear)"
         default:
             return "\(endYear)"
