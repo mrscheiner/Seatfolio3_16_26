@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "Seatfolio",
+      "path": "ios",
+      "framework": "swift"
+    }
+  ]
+}
