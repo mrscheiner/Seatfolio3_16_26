@@ -61,15 +61,36 @@ nonisolated final class LocalLogoResolver: Sendable {
         "mlb/sf": "sf_mlb", "mlb/sea": "sea_mlb", "mlb/stl": "stl_mlb", "mlb/tb": "tb_mlb",
         "mlb/tex": "tex", "mlb/tor": "tor_mlb", "mlb/was": "was_mlb", "mlb/wsh": "was_mlb",
 
-        "mls/atl": "atl_mls", "mls/atx": "aus", "mls/aus": "aus", "mls/clb": "clb",
-        "mls/columbus": "clb", "mls/cin": "cin_mls", "mls/col": "col_mls", "mls/hou": "hou_mls",
-        "mls/mia": "inter", "mls/lafc": "lafc", "mls/lag": "lag", "mls/la": "lag",
-        "mls/min": "min_mls", "mls/mtl": "mtl_mls", "mls/nsh": "nsh_mls",
-        "mls/nashville": "nsh_mls", "mls/ne": "ne_mls", "mls/nyc": "nyc", "mls/nyrb": "nyrb",
-        "mls/ny": "nyrb", "mls/orl": "orl_mls", "mls/phi": "phi_mls", "mls/por": "por_mls",
-        "mls/rsl": "rsl", "mls/sea": "sea_mls", "mls/skc": "skc", "mls/kc": "skc",
-        "mls/sj": "sj_mls", "mls/stl": "stl_mls", "mls/tor": "tor_mls", "mls/van": "van_mls",
-        "mls/dc": "dc", "mls/clt": "cha_mls", "mls/dal": "dal_mls", "mls/chi": "chi_mls",
+        "mls/atl": "atl_mls", "mls/atlutd": "atl_mls", "mls/atlanta": "atl_mls", "mls/atlanta united": "atl_mls",
+        "mls/atx": "aus", "mls/aus": "aus", "mls/austin": "aus", "mls/austinfc": "aus",
+        "mls/clb": "clb", "mls/columbus": "clb", "mls/crew": "clb", "mls/cls": "clb",
+        "mls/cin": "cin_mls", "mls/fcc": "cin_mls", "mls/fccincinnati": "cin_mls", "mls/cincinnati": "cin_mls",
+        "mls/col": "col_mls", "mls/colorado": "col_mls", "mls/rapids": "col_mls", "mls/clr": "col_mls",
+        "mls/hou": "hou_mls", "mls/houston": "hou_mls", "mls/dynamo": "hou_mls",
+        "mls/mia": "inter", "mls/int": "inter", "mls/inter": "inter", "mls/intm": "inter", "mls/miami": "inter", "mls/intermiami": "inter",
+        "mls/lafc": "lafc", "mls/losangelesfc": "lafc",
+        "mls/lag": "lag", "mls/la": "lag", "mls/galaxy": "lag", "mls/lagalaxy": "lag",
+        "mls/min": "min_mls", "mls/mnufc": "min_mls", "mls/minnesota": "min_mls", "mls/mnunited": "min_mls",
+        "mls/mtl": "mtl_mls", "mls/mon": "mtl_mls", "mls/montreal": "mtl_mls", "mls/cfm": "mtl_mls", "mls/cfmontreal": "mtl_mls",
+        "mls/nsh": "nsh_mls", "mls/nas": "nsh_mls", "mls/nashville": "nsh_mls", "mls/nashvillesc": "nsh_mls",
+        "mls/ne": "ne_mls", "mls/nev": "ne_mls", "mls/ner": "ne_mls", "mls/newengland": "ne_mls", "mls/revolution": "ne_mls",
+        "mls/nyc": "nyc", "mls/nycfc": "nyc", "mls/newyorkcity": "nyc",
+        "mls/nyrb": "nyrb", "mls/ny": "nyrb", "mls/rbny": "nyrb", "mls/redbulls": "nyrb", "mls/newyork": "nyrb",
+        "mls/orl": "orl_mls", "mls/orlando": "orl_mls", "mls/orlandocity": "orl_mls", "mls/ocsc": "orl_mls",
+        "mls/phi": "phi_mls", "mls/philadelphia": "phi_mls", "mls/union": "phi_mls",
+        "mls/por": "por_mls", "mls/portland": "por_mls", "mls/timbers": "por_mls", "mls/ptfc": "por_mls",
+        "mls/rsl": "rsl", "mls/realsaltlake": "rsl", "mls/saltlake": "rsl", "mls/slc": "rsl",
+        "mls/sea": "sea_mls", "mls/seattle": "sea_mls", "mls/sounders": "sea_mls",
+        "mls/skc": "skc", "mls/kc": "skc", "mls/sportingkc": "skc", "mls/kansascity": "skc",
+        "mls/sj": "sj_mls", "mls/sje": "sj_mls", "mls/sanjose": "sj_mls", "mls/earthquakes": "sj_mls",
+        "mls/stl": "stl_mls", "mls/stlouis": "stl_mls", "mls/stlouiscity": "stl_mls",
+        "mls/tor": "tor_mls", "mls/tfc": "tor_mls", "mls/toronto": "tor_mls", "mls/torontofc": "tor_mls",
+        "mls/van": "van_mls", "mls/vancouver": "van_mls", "mls/whitecaps": "van_mls", "mls/vwfc": "van_mls",
+        "mls/dc": "dc", "mls/dcu": "dc", "mls/dcunited": "dc", "mls/washington": "dc",
+        "mls/clt": "cha_mls", "mls/cha": "cha_mls", "mls/charlotte": "cha_mls", "mls/charlottefc": "cha_mls",
+        "mls/dal": "dal_mls", "mls/fcd": "dal_mls", "mls/dallas": "dal_mls", "mls/fcdallas": "dal_mls",
+        "mls/chi": "chi_mls", "mls/cf97": "chi_mls", "mls/chicago": "chi_mls", "mls/chicagofire": "chi_mls", "mls/fire": "chi_mls",
+        "mls/sd": "sj_mls",
     ]
 
     private let teamIdToLocal: [String: String] = [
@@ -137,6 +158,14 @@ nonisolated final class LocalLogoResolver: Sendable {
                     log("\(key)→\(localName)", source: .localByAlias)
                     return ResolvedLogo(image: img, source: .localByAlias, remoteURL: nil)
                 }
+                let normalized = apiAbbr.lowercased().replacingOccurrences(of: " ", with: "")
+                if normalized != apiAbbr.lowercased() {
+                    let nKey = "\(lid)/\(normalized)"
+                    if let localName = apiToLocal[nKey], let img = loadLocal(localName) {
+                        log("\(nKey)→\(localName)", source: .localByAlias)
+                        return ResolvedLogo(image: img, source: .localByAlias, remoteURL: nil)
+                    }
+                }
             }
 
             if let abbreviation, !abbreviation.isEmpty {
@@ -144,6 +173,22 @@ nonisolated final class LocalLogoResolver: Sendable {
                 if let localName = apiToLocal[key], let img = loadLocal(localName) {
                     log("\(key)→\(localName)", source: .localByAbbreviation)
                     return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
+            }
+
+            if let teamName, !teamName.isEmpty {
+                let nameKey = "\(lid)/\(teamName.lowercased().replacingOccurrences(of: " ", with: ""))"
+                if let localName = apiToLocal[nameKey], let img = loadLocal(localName) {
+                    log("\(nameKey)→\(localName)", source: .localByName)
+                    return ResolvedLogo(image: img, source: .localByName, remoteURL: nil)
+                }
+                let lastWord = teamName.split(separator: " ").last.map(String.init)?.lowercased() ?? ""
+                if !lastWord.isEmpty {
+                    let lwKey = "\(lid)/\(lastWord)"
+                    if let localName = apiToLocal[lwKey], let img = loadLocal(localName) {
+                        log("\(lwKey)→\(localName)", source: .localByName)
+                        return ResolvedLogo(image: img, source: .localByName, remoteURL: nil)
+                    }
                 }
             }
         }
@@ -166,10 +211,21 @@ nonisolated final class LocalLogoResolver: Sendable {
                 }
             }
 
+            let lid = leagueId ?? leagueIdForTeam(team)
+            if let lid {
+                let qualifiedAbbr = "\(team.abbreviation.lowercased())_\(lid)"
+                if let img = loadLocal(qualifiedAbbr) {
+                    log(qualifiedAbbr, source: .localByAbbreviation)
+                    return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
+            }
+
             let abbrKey = team.abbreviation.lowercased()
-            if let img = loadLocal(abbrKey) {
-                log(abbrKey, source: .localByAbbreviation)
-                return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+            if lid == nil || !isAmbiguousAbbreviation(abbrKey) {
+                if let img = loadLocal(abbrKey) {
+                    log(abbrKey, source: .localByAbbreviation)
+                    return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
             }
 
             let nameKey = normalize(team.name)
@@ -178,22 +234,24 @@ nonisolated final class LocalLogoResolver: Sendable {
                 return ResolvedLogo(image: img, source: .localByName, remoteURL: nil)
             }
 
-            if let lid = leagueId ?? leagueIdForTeam(team) {
-                if let img = loadLocal("league_\(lid)") {
-                    log("league_\(lid)", source: .fallbackLeague)
-                    return ResolvedLogo(image: img, source: .fallbackLeague, remoteURL: team.logoURL)
-                }
-            }
-
             log(team.id, source: .remoteURL)
             return ResolvedLogo(image: nil, source: .remoteURL, remoteURL: team.logoURL)
         }
 
         if let apiAbbr, !apiAbbr.isEmpty {
             let lower = apiAbbr.lowercased()
-            if let img = loadLocal(lower) {
-                log(lower, source: .localByAbbreviation)
-                return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+            if let lid = leagueId, !lid.isEmpty {
+                let qualified = "\(lower)_\(lid)"
+                if let img = loadLocal(qualified) {
+                    log(qualified, source: .localByAbbreviation)
+                    return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
+            }
+            if leagueId == nil || !isAmbiguousAbbreviation(lower) {
+                if let img = loadLocal(lower) {
+                    log(lower, source: .localByAbbreviation)
+                    return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
             }
             for lid in ["nhl", "nba", "nfl", "mlb", "mls"] {
                 let key = "\(lid)/\(lower)"
@@ -206,9 +264,18 @@ nonisolated final class LocalLogoResolver: Sendable {
 
         if let abbreviation, !abbreviation.isEmpty {
             let lower = abbreviation.lowercased()
-            if let img = loadLocal(lower) {
-                log(lower, source: .localByAbbreviation)
-                return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+            if let lid = leagueId, !lid.isEmpty {
+                let qualified = "\(lower)_\(lid)"
+                if let img = loadLocal(qualified) {
+                    log(qualified, source: .localByAbbreviation)
+                    return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
+            }
+            if leagueId == nil || !isAmbiguousAbbreviation(lower) {
+                if let img = loadLocal(lower) {
+                    log(lower, source: .localByAbbreviation)
+                    return ResolvedLogo(image: img, source: .localByAbbreviation, remoteURL: nil)
+                }
             }
         }
 
@@ -329,6 +396,17 @@ nonisolated final class LocalLogoResolver: Sendable {
             return UIImage(data: data)
         }
         return nil
+    }
+
+    private let ambiguousAbbrs: Set<String> = [
+        "atl", "bos", "buf", "car", "chi", "cin", "cle", "col", "dal", "den", "det",
+        "hou", "ind", "min", "mia", "ne", "orl", "phi", "pit", "por", "sea", "stl",
+        "tb", "tor", "van", "was", "wsh", "sf", "kc", "no", "ny", "la", "sj", "nsh", "mtl",
+        "dc", "bal", "mil", "sac"
+    ]
+
+    private func isAmbiguousAbbreviation(_ abbr: String) -> Bool {
+        ambiguousAbbrs.contains(abbr)
     }
 
     private func normalize(_ input: String) -> String {
