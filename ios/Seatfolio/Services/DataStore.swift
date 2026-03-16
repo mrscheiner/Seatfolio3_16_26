@@ -392,10 +392,37 @@ class DataStore {
             }
 
             setGames(games)
+            backfillSalesFromGames(games)
             scheduleError = nil
         } catch {
             guard fetchTaskId == currentFetchId else { return }
             scheduleError = error.localizedDescription
+        }
+    }
+
+    private func backfillSalesFromGames(_ games: [Game]) {
+        guard var pass = activePass else { return }
+        let gameMap = Dictionary(uniqueKeysWithValues: games.map { ($0.id, $0) })
+        var changed = false
+        for i in pass.sales.indices {
+            let sale = pass.sales[i]
+            guard let game = gameMap[sale.gameId] else { continue }
+            if sale.opponentAbbr.isEmpty && !game.opponentAbbr.isEmpty {
+                pass.sales[i].opponentAbbr = game.opponentAbbr
+                changed = true
+            }
+            if sale.opponent.isEmpty && !game.opponent.isEmpty {
+                pass.sales[i].opponent = game.opponent
+                changed = true
+            }
+            if sale.leagueId.isEmpty, let lid = activePass?.leagueId, !lid.isEmpty {
+                pass.sales[i].leagueId = lid
+                changed = true
+            }
+        }
+        if changed {
+            updatePass(pass)
+            print("[DataStore] Backfilled missing sale data from refreshed schedule")
         }
     }
 

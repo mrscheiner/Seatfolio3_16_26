@@ -24,6 +24,15 @@ nonisolated struct ESPNScheduleResponse: Decodable, Sendable {
     let events: [ESPNEvent]
 }
 
+nonisolated struct ESPNScoreboardResponse: Decodable, Sendable {
+    let leagues: [ESPNLeagueInfo]?
+    let events: [ESPNEvent]?
+}
+
+nonisolated struct ESPNLeagueInfo: Decodable, Sendable {
+    let calendar: [String]?
+}
+
 nonisolated struct ESPNEvent: Decodable, Sendable {
     let id: String
     let date: String
@@ -293,7 +302,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
     }
 
     private nonisolated func fetchMLSScheduleFromESPN(teamAbbr: String, season: String) async throws -> [Game] {
-        guard let espnId = mlsEspnTeamIds[teamAbbr] else {
+        guard mlsEspnTeamIds[teamAbbr] != nil else {
             let available = mlsEspnTeamIds.keys.sorted().joined(separator: ", ")
             throw ScheduleError.noHomeGames("\(teamAbbr) (available MLS teams: \(available))")
         }
@@ -303,105 +312,170 @@ nonisolated class SportsDataService: @unchecked Sendable {
         if season != "\(currentYear)" {
             seasonsToTry.append("\(currentYear)")
         }
-        if season != "\(currentYear - 1)" {
-            seasonsToTry.append("\(currentYear - 1)")
-        }
 
         for seasonAttempt in seasonsToTry {
-            let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/teams/\(espnId)/schedule?season=\(seasonAttempt)"
-            guard let url = URL(string: urlString) else { continue }
+            print("[ESPN-MLS] Fetching full scoreboard calendar for season \(seasonAttempt)")
 
-            print("[ESPN-MLS] Fetching schedule for \(teamAbbr) (ESPN ID: \(espnId)), season \(seasonAttempt)")
-
-            do {
-                let (data, response) = try await URLSession.shared.data(from: url)
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-                    print("[ESPN-MLS] HTTP \(code) for season \(seasonAttempt), trying next")
-                    continue
-                }
-
-                let espnResponse = try JSONDecoder().decode(ESPNScheduleResponse.self, from: data)
-                print("[ESPN-MLS] Got \(espnResponse.events.count) total events for season \(seasonAttempt)")
-
-                let homeGames: [Game] = espnResponse.events.compactMap { event in
-                    guard let competition = event.competitions.first else { return nil }
-                    let homeCompetitor = competition.competitors.first { $0.homeAway == "home" }
-                    let awayCompetitor = competition.competitors.first { $0.homeAway == "away" }
-
-                    guard let home = homeCompetitor, home.team.abbreviation == teamAbbr else { return nil }
-                    guard let away = awayCompetitor else { return nil }
-
-                    guard let date = parseESPNDate(event.date) else {
-                        print("[ESPN-MLS] Failed to parse date: \(event.date)")
-                        return nil
-                    }
-
-                    let opponentAbbr = away.team.abbreviation
-                    let opponentName = LeagueData.teamNameForAPIAbbr(opponentAbbr, leagueId: "mls")
-                    let venueName = competition.venue?.fullName ?? ""
-
-                    let timeStr = formatTime(from: date)
-
-                    let seasonTypeName = event.seasonType?.name?.lowercased() ?? "regular season"
-                    let gameType: GameType
-                    if seasonTypeName.contains("pre") {
-                        gameType = .preseason
-                    } else if seasonTypeName.contains("post") || seasonTypeName.contains("playoff") || seasonTypeName.contains("cup") {
-                        gameType = .playoff
-                    } else {
-                        gameType = .regular
-                    }
-
-                    return Game(
-                        id: event.id,
-                        date: date,
-                        opponent: opponentName,
-                        opponentAbbr: opponentAbbr,
-                        venueName: venueName,
-                        time: timeStr,
-                        gameNumber: 0,
-                        gameLabel: "",
-                        type: gameType,
-                        isHome: true
-                    )
-                }
-
-                print("[ESPN-MLS] \(homeGames.count) home games for \(teamAbbr) in season \(seasonAttempt)")
-
-                if homeGames.isEmpty { continue }
-
-                var allGames = homeGames.sorted { $0.date < $1.date }
-
-                var regCount = 0
-                var playoffCount = 0
-                allGames = allGames.map { game in
-                    var g = game
-                    switch g.type {
-                    case .preseason:
-                        regCount += 1
-                        g.gameNumber = regCount
-                        g.gameLabel = "PS\(regCount)"
-                    case .regular:
-                        regCount += 1
-                        g.gameNumber = regCount
-                        g.gameLabel = "\(regCount)"
-                    case .playoff:
-                        playoffCount += 1
-                        g.gameNumber = playoffCount
-                        g.gameLabel = "P\(playoffCount)"
-                    }
-                    return g
-                }
-
-                return allGames
-            } catch {
-                print("[ESPN-MLS] Error fetching season \(seasonAttempt): \(error.localizedDescription)")
+            let calendarDates = try await fetchMLSCalendarDates(season: seasonAttempt)
+            if calendarDates.isEmpty {
+                print("[ESPN-MLS] No calendar dates for season \(seasonAttempt)")
                 continue
             }
+
+            print("[ESPN-MLS] Got \(calendarDates.count) match dates, fetching all scoreboards...")
+
+            let allEvents = try await fetchMLSScoreboardsForDates(calendarDates)
+            print("[ESPN-MLS] Total events across all dates: \(allEvents.count)")
+
+            let homeGames: [Game] = allEvents.compactMap { event in
+                guard let competition = event.competitions.first else { return nil }
+                let homeCompetitor = competition.competitors.first { $0.homeAway == "home" }
+                let awayCompetitor = competition.competitors.first { $0.homeAway == "away" }
+
+                guard let home = homeCompetitor, home.team.abbreviation == teamAbbr else { return nil }
+                guard let away = awayCompetitor else { return nil }
+
+                guard let date = parseESPNDate(event.date) else {
+                    print("[ESPN-MLS] Failed to parse date: \(event.date)")
+                    return nil
+                }
+
+                let opponentAbbr = away.team.abbreviation
+                let opponentName = LeagueData.teamNameForAPIAbbr(opponentAbbr, leagueId: "mls")
+                let venueName = competition.venue?.fullName ?? ""
+                let timeStr = formatTime(from: date)
+
+                let seasonTypeName = event.seasonType?.name?.lowercased() ?? "regular season"
+                let gameType: GameType
+                if seasonTypeName.contains("pre") {
+                    gameType = .preseason
+                } else if seasonTypeName.contains("post") || seasonTypeName.contains("playoff") || seasonTypeName.contains("cup") {
+                    gameType = .playoff
+                } else {
+                    gameType = .regular
+                }
+
+                return Game(
+                    id: event.id,
+                    date: date,
+                    opponent: opponentName,
+                    opponentAbbr: opponentAbbr,
+                    venueName: venueName,
+                    time: timeStr,
+                    gameNumber: 0,
+                    gameLabel: "",
+                    type: gameType,
+                    isHome: true
+                )
+            }
+
+            print("[ESPN-MLS] \(homeGames.count) home games for \(teamAbbr) in season \(seasonAttempt)")
+
+            if homeGames.isEmpty { continue }
+
+            var allGames = homeGames.sorted { $0.date < $1.date }
+
+            var seen = Set<String>()
+            allGames = allGames.filter { seen.insert($0.id).inserted }
+
+            var regCount = 0
+            var playoffCount = 0
+            allGames = allGames.map { game in
+                var g = game
+                switch g.type {
+                case .preseason:
+                    regCount += 1
+                    g.gameNumber = regCount
+                    g.gameLabel = "PS\(regCount)"
+                case .regular:
+                    regCount += 1
+                    g.gameNumber = regCount
+                    g.gameLabel = "\(regCount)"
+                case .playoff:
+                    playoffCount += 1
+                    g.gameNumber = playoffCount
+                    g.gameLabel = "P\(playoffCount)"
+                }
+                return g
+            }
+
+            return allGames
         }
 
         throw ScheduleError.noHomeGames(teamAbbr)
+    }
+
+    private nonisolated func fetchMLSCalendarDates(season: String) async throws -> [String] {
+        let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=\(season)0101&limit=1"
+        guard let url = URL(string: urlString) else { return [] }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+
+        let scoreboard = try JSONDecoder().decode(ESPNScoreboardResponse.self, from: data)
+        guard let calendarStrings = scoreboard.leagues?.first?.calendar else { return [] }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(identifier: "UTC")
+
+        var dateStrings: [String] = []
+        let outputFmt = DateFormatter()
+        outputFmt.locale = Locale(identifier: "en_US_POSIX")
+        outputFmt.dateFormat = "yyyyMMdd"
+        outputFmt.timeZone = TimeZone(identifier: "UTC")
+
+        let isoParser = ISO8601DateFormatter()
+        isoParser.formatOptions = [.withInternetDateTime]
+
+        for calStr in calendarStrings {
+            if let date = isoParser.date(from: calStr) {
+                dateStrings.append(outputFmt.string(from: date))
+            }
+        }
+
+        return dateStrings
+    }
+
+    private nonisolated func fetchMLSScoreboardsForDates(_ dates: [String]) async throws -> [ESPNEvent] {
+        let batchSize = 10
+        var allEvents: [ESPNEvent] = []
+
+        for batchStart in stride(from: 0, to: dates.count, by: batchSize) {
+            let batchEnd = min(batchStart + batchSize, dates.count)
+            let batch = Array(dates[batchStart..<batchEnd])
+
+            let batchResults: [ESPNEvent] = try await withThrowingTaskGroup(of: [ESPNEvent].self) { group in
+                for dateStr in batch {
+                    group.addTask {
+                        try await self.fetchMLSScoreboardForDate(dateStr)
+                    }
+                }
+                var results: [ESPNEvent] = []
+                for try await events in group {
+                    results.append(contentsOf: events)
+                }
+                return results
+            }
+            allEvents.append(contentsOf: batchResults)
+        }
+
+        return allEvents
+    }
+
+    private nonisolated func fetchMLSScoreboardForDate(_ dateStr: String) async throws -> [ESPNEvent] {
+        let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=\(dateStr)&limit=100"
+        guard let url = URL(string: urlString) else { return [] }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+            let scoreboard = try JSONDecoder().decode(ESPNScoreboardResponse.self, from: data)
+            return scoreboard.events ?? []
+        } catch {
+            print("[ESPN-MLS] Error fetching scoreboard for \(dateStr): \(error.localizedDescription)")
+            return []
+        }
     }
 
     private nonisolated func parseESPNDate(_ str: String) -> Date? {
