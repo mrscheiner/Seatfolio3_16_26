@@ -38,8 +38,11 @@ struct ScheduleView: View {
         }
 
         if !searchText.isEmpty {
+            let leagueId = store.activePass?.leagueId ?? ""
             filtered = filtered.filter {
-                $0.opponent.localizedStandardContains(searchText)
+                let fullName = LeagueData.teamNameForAPIAbbr($0.opponentAbbr, leagueId: leagueId)
+                return $0.opponent.localizedStandardContains(searchText) ||
+                    fullName.localizedStandardContains(searchText)
             }
         }
 
