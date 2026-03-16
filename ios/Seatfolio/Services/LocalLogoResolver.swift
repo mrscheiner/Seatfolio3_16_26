@@ -389,12 +389,14 @@ nonisolated final class LocalLogoResolver: Sendable {
 
     private func loadLocal(_ name: String) -> UIImage? {
         if let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "TeamLogos"),
-           let data = try? Data(contentsOf: url) {
-            return UIImage(data: data)
+           let data = try? Data(contentsOf: url), data.count > 100,
+           let img = UIImage(data: data) {
+            return img
         }
         if let url = Bundle.main.url(forResource: name, withExtension: "png"),
-           let data = try? Data(contentsOf: url) {
-            return UIImage(data: data)
+           let data = try? Data(contentsOf: url), data.count > 100,
+           let img = UIImage(data: data) {
+            return img
         }
         return nil
     }
