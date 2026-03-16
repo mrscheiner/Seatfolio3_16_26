@@ -314,18 +314,18 @@ nonisolated class SportsDataService: @unchecked Sendable {
         }
 
         for seasonAttempt in seasonsToTry {
-            print("[ESPN-MLS] Fetching full scoreboard calendar for season \(seasonAttempt)")
+            print("[ESPN-MLS] Fetching season \(seasonAttempt) via date-range scoreboard")
 
-            let calendarDates = try await fetchMLSCalendarDates(season: seasonAttempt)
-            if calendarDates.isEmpty {
-                print("[ESPN-MLS] No calendar dates for season \(seasonAttempt)")
+            let dateRange = try await fetchMLSSeasonDateRange(season: seasonAttempt)
+            guard let dateRange else {
+                print("[ESPN-MLS] No calendar data for season \(seasonAttempt)")
                 continue
             }
 
-            print("[ESPN-MLS] Got \(calendarDates.count) match dates, fetching all scoreboards...")
+            print("[ESPN-MLS] Date range: \(dateRange.start)-\(dateRange.end)")
 
-            let allEvents = try await fetchMLSScoreboardsForDates(calendarDates)
-            print("[ESPN-MLS] Total events across all dates: \(allEvents.count)")
+            let allEvents = try await fetchMLSScoreboardDateRange(start: dateRange.start, end: dateRange.end)
+            print("[ESPN-MLS] Total events: \(allEvents.count)")
 
             let homeGames: [Game] = allEvents.compactMap { event in
                 guard let competition = event.competitions.first else { return nil }
@@ -379,14 +379,15 @@ nonisolated class SportsDataService: @unchecked Sendable {
             allGames = allGames.filter { seen.insert($0.id).inserted }
 
             var regCount = 0
+            var preCount = 0
             var playoffCount = 0
             allGames = allGames.map { game in
                 var g = game
                 switch g.type {
                 case .preseason:
-                    regCount += 1
-                    g.gameNumber = regCount
-                    g.gameLabel = "PS\(regCount)"
+                    preCount += 1
+                    g.gameNumber = preCount
+                    g.gameLabel = "PS\(preCount)"
                 case .regular:
                     regCount += 1
                     g.gameNumber = regCount
@@ -405,75 +406,53 @@ nonisolated class SportsDataService: @unchecked Sendable {
         throw ScheduleError.noHomeGames(teamAbbr)
     }
 
-    private nonisolated func fetchMLSCalendarDates(season: String) async throws -> [String] {
+    private nonisolated func fetchMLSSeasonDateRange(season: String) async throws -> (start: String, end: String)? {
         let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=\(season)0101&limit=1"
-        guard let url = URL(string: urlString) else { return [] }
+        guard let url = URL(string: urlString) else { return nil }
 
         let (data, response) = try await URLSession.shared.data(from: url)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return nil }
 
         let scoreboard = try JSONDecoder().decode(ESPNScoreboardResponse.self, from: data)
-        guard let calendarStrings = scoreboard.leagues?.first?.calendar else { return [] }
+        guard let calendarStrings = scoreboard.leagues?.first?.calendar, calendarStrings.count >= 2 else { return nil }
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.timeZone = TimeZone(identifier: "UTC")
-
-        var dateStrings: [String] = []
+        let isoParser = ISO8601DateFormatter()
+        isoParser.formatOptions = [.withInternetDateTime]
         let outputFmt = DateFormatter()
         outputFmt.locale = Locale(identifier: "en_US_POSIX")
         outputFmt.dateFormat = "yyyyMMdd"
         outputFmt.timeZone = TimeZone(identifier: "UTC")
 
-        let isoParser = ISO8601DateFormatter()
-        isoParser.formatOptions = [.withInternetDateTime]
-
+        var earliest: Date?
+        var latest: Date?
         for calStr in calendarStrings {
             if let date = isoParser.date(from: calStr) {
-                dateStrings.append(outputFmt.string(from: date))
+                if earliest == nil || date < earliest! { earliest = date }
+                if latest == nil || date > latest! { latest = date }
             }
         }
 
-        return dateStrings
+        guard let start = earliest, let end = latest else { return nil }
+        return (outputFmt.string(from: start), outputFmt.string(from: end))
     }
 
-    private nonisolated func fetchMLSScoreboardsForDates(_ dates: [String]) async throws -> [ESPNEvent] {
-        let batchSize = 10
-        var allEvents: [ESPNEvent] = []
-
-        for batchStart in stride(from: 0, to: dates.count, by: batchSize) {
-            let batchEnd = min(batchStart + batchSize, dates.count)
-            let batch = Array(dates[batchStart..<batchEnd])
-
-            let batchResults: [ESPNEvent] = try await withThrowingTaskGroup(of: [ESPNEvent].self) { group in
-                for dateStr in batch {
-                    group.addTask {
-                        try await self.fetchMLSScoreboardForDate(dateStr)
-                    }
-                }
-                var results: [ESPNEvent] = []
-                for try await events in group {
-                    results.append(contentsOf: events)
-                }
-                return results
-            }
-            allEvents.append(contentsOf: batchResults)
-        }
-
-        return allEvents
-    }
-
-    private nonisolated func fetchMLSScoreboardForDate(_ dateStr: String) async throws -> [ESPNEvent] {
-        let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=\(dateStr)&limit=100"
+    private nonisolated func fetchMLSScoreboardDateRange(start: String, end: String) async throws -> [ESPNEvent] {
+        let urlString = "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=\(start)-\(end)&limit=900"
         guard let url = URL(string: urlString) else { return [] }
+
+        print("[ESPN-MLS] Fetching: \(urlString)")
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+                print("[ESPN-MLS] HTTP \(code) for date-range scoreboard")
+                return []
+            }
             let scoreboard = try JSONDecoder().decode(ESPNScoreboardResponse.self, from: data)
             return scoreboard.events ?? []
         } catch {
-            print("[ESPN-MLS] Error fetching scoreboard for \(dateStr): \(error.localizedDescription)")
+            print("[ESPN-MLS] Error fetching date-range scoreboard: \(error.localizedDescription)")
             return []
         }
     }
