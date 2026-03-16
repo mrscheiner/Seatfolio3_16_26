@@ -416,8 +416,6 @@ nonisolated class SportsDataService: @unchecked Sendable {
         let scoreboard = try JSONDecoder().decode(ESPNScoreboardResponse.self, from: data)
         guard let calendarStrings = scoreboard.leagues?.first?.calendar, calendarStrings.count >= 2 else { return nil }
 
-        let isoParser = ISO8601DateFormatter()
-        isoParser.formatOptions = [.withInternetDateTime]
         let outputFmt = DateFormatter()
         outputFmt.locale = Locale(identifier: "en_US_POSIX")
         outputFmt.dateFormat = "yyyyMMdd"
@@ -426,7 +424,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
         var earliest: Date?
         var latest: Date?
         for calStr in calendarStrings {
-            if let date = isoParser.date(from: calStr) {
+            if let date = parseESPNDate(calStr) {
                 if earliest == nil || date < earliest! { earliest = date }
                 if latest == nil || date > latest! { latest = date }
             }
