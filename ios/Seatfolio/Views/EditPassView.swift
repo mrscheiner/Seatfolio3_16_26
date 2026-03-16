@@ -3,9 +3,9 @@ import SwiftUI
 struct EditPassView: View {
     @Environment(DataStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @State private var seasonLabel = ""
-    @State private var seatPairs: [SeatPair] = []
-    @State private var sellAsPairsOnly = true
+    @State private var seasonLabel: String
+    @State private var seatPairs: [SeatPair]
+    @State private var sellAsPairsOnly: Bool
     @State private var editingPairId: String?
     @State private var editSection = ""
     @State private var editRow = ""
@@ -18,7 +18,16 @@ struct EditPassView: View {
     @State private var hasChanges = false
     @State private var showDiscardAlert = false
 
+    private let passId: String
+
     private var theme: TeamTheme { store.currentTheme }
+
+    init(pass: SeasonPass) {
+        self.passId = pass.id
+        _seasonLabel = State(initialValue: pass.seasonLabel)
+        _seatPairs = State(initialValue: pass.seatPairs)
+        _sellAsPairsOnly = State(initialValue: pass.sellAsPairsOnly)
+    }
 
     var body: some View {
         NavigationStack {
@@ -126,13 +135,6 @@ struct EditPassView: View {
                 Button("Keep Editing", role: .cancel) { }
             } message: {
                 Text("You have unsaved changes that will be lost.")
-            }
-            .onAppear {
-                if let pass = store.activePass {
-                    seasonLabel = pass.seasonLabel
-                    seatPairs = pass.seatPairs
-                    sellAsPairsOnly = pass.sellAsPairsOnly
-                }
             }
         }
     }
@@ -250,7 +252,7 @@ struct EditPassView: View {
     }
 
     private func saveChanges() {
-        guard var pass = store.activePass else { return }
+        guard var pass = store.seasonPasses.first(where: { $0.id == passId }) else { return }
         pass.seasonLabel = seasonLabel.trimmingCharacters(in: .whitespaces)
         pass.seatPairs = seatPairs
         pass.sellAsPairsOnly = sellAsPairsOnly

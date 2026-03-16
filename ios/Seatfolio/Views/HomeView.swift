@@ -83,7 +83,9 @@ struct HomeView: View {
                 SetupView()
             }
             .sheet(isPresented: $showEditPass) {
-                EditPassView()
+                if let pass = store.activePass {
+                    EditPassView(pass: pass)
+                }
             }
 
         }

@@ -208,7 +208,9 @@ struct SettingsView: View {
                 SetupView()
             }
             .sheet(isPresented: $showEditPass) {
-                EditPassView()
+                if let pass = store.activePass {
+                    EditPassView(pass: pass)
+                }
             }
             .sheet(isPresented: $showRewind) {
                 RewindView()
