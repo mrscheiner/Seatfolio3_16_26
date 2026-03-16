@@ -33,6 +33,7 @@ struct ContentView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 170, height: 170)
+                .clipShape(.rect(cornerRadius: 38))
                 .rotationEffect(.degrees(splashRotation))
         }
         .onAppear {
