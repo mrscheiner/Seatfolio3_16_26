@@ -300,6 +300,8 @@ struct ScheduleView: View {
         updated.section = pair.section
         updated.row = pair.row
         updated.seats = pair.seats
+        updated.opponentAbbr = game.opponentAbbr.isEmpty ? updated.opponentAbbr : game.opponentAbbr
+        updated.leagueId = store.activePass?.leagueId ?? updated.leagueId
         store.updateSale(updated)
         saleAmount = ""
         salePaid = false

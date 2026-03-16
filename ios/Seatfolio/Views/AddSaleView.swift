@@ -111,6 +111,8 @@ struct AddSaleView: View {
         if var existing = editingSale {
             existing.gameId = selectedGameId
             existing.opponent = game?.opponent ?? ""
+            existing.opponentAbbr = game?.opponentAbbr ?? existing.opponentAbbr
+            existing.leagueId = store.activePass?.leagueId ?? existing.leagueId
             existing.gameDate = game?.date ?? Date()
             existing.section = section
             existing.row = row

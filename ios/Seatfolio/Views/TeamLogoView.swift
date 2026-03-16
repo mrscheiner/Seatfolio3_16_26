@@ -43,10 +43,14 @@ struct TeamLogoView: View {
                     .aspectRatio(contentMode: .fit)
             } else if let remote = logo.remoteURL, let url = URL(string: remote) {
                 AsyncImage(url: url) { phase in
-                    if let image = phase.image {
+                    switch phase {
+                    case .success(let image):
                         image.resizable().aspectRatio(contentMode: .fit)
-                    } else {
+                    case .failure:
                         fallbackCircle
+                    default:
+                        ProgressView()
+                            .frame(width: size * 0.5, height: size * 0.5)
                     }
                 }
             } else {

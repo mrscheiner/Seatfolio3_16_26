@@ -464,6 +464,31 @@ struct RecentSaleCard: View {
         sale.opponent.isEmpty ? (game?.opponent ?? "") : sale.opponent
     }
 
+    private var resolvedTeamId: String {
+        let abbr = effectiveAbbr
+        let lid = effectiveLeague
+        if !abbr.isEmpty && !lid.isEmpty {
+            if let team = LeagueData.teamByAPIAbbr(abbr, leagueId: lid) {
+                return team.id
+            }
+        }
+        let name = effectiveName
+        if !name.isEmpty && !lid.isEmpty {
+            if let league = LeagueData.league(for: lid) {
+                let lowered = name.lowercased()
+                if let team = league.teams.first(where: {
+                    lowered.contains($0.name.lowercased()) ||
+                    $0.name.lowercased().contains(lowered) ||
+                    "\($0.city) \($0.name)".lowercased().contains(lowered) ||
+                    lowered.contains("\($0.city) \($0.name)".lowercased())
+                }) {
+                    return team.id
+                }
+            }
+        }
+        return ""
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let game {
@@ -474,6 +499,7 @@ struct RecentSaleCard: View {
 
             HStack(spacing: 12) {
                 TeamLogoView(
+                    teamId: resolvedTeamId,
                     apiAbbr: effectiveAbbr,
                     teamName: effectiveName,
                     leagueId: effectiveLeague,
