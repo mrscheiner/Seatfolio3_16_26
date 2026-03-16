@@ -57,6 +57,7 @@ class DataStore {
         loadData()
         print("[Import] DataStore after loadData, before importFromLegacyJSON")
         importFromLegacyJSON()
+        importPanthersBackup()
         print("[Import] DataStore after importFromLegacyJSON")
     }
 
@@ -140,6 +141,13 @@ class DataStore {
         let price: Double
         let paymentStatus: String
         let soldDate: Date
+    }
+
+    private func importPanthersBackup() {
+        if PanthersBackupImporter.importIfNeeded(into: &seasonPasses, activePassId: &activePassId) {
+            saveImmediate()
+            print("[DataStore] Panthers backup imported and saved")
+        }
     }
 
     func loadData() {
