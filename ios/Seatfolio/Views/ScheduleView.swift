@@ -8,6 +8,9 @@ struct ScheduleView: View {
     @State private var pairAmounts: [String: String] = [:]
     @State private var pairStatuses: [String: Bool] = [:]
     @State private var pairSaleIds: [String: String] = [:]
+    @State private var seatAmounts: [String: String] = [:]
+    @State private var seatStatuses: [String: Bool] = [:]
+    @State private var seatSaleIds: [String: String] = [:]
 
     private enum GameTypeFilter: String, CaseIterable {
         case all = "All"
@@ -106,13 +109,22 @@ struct ScheduleView: View {
                                             }
                                         }
                                     },
+                                    sellAsPairsOnly: store.activePass?.sellAsPairsOnly ?? true,
                                     pairAmounts: $pairAmounts,
                                     pairStatuses: $pairStatuses,
+                                    seatAmounts: $seatAmounts,
+                                    seatStatuses: $seatStatuses,
                                     onSavePair: { pair in
                                         saveSaleForPair(pair, game: game)
                                     },
                                     onDeletePair: { pair in
                                         deleteSaleForPair(pair, game: game)
+                                    },
+                                    onSaveSeat: { pair, seat in
+                                        saveSaleForSeat(pair, seat: seat, game: game)
+                                    },
+                                    onDeleteSeat: { pair, seat in
+                                        deleteSaleForSeat(pair, seat: seat, game: game)
                                     },
                                     onToggleStatus: { sale in
                                         toggleSaleStatus(sale)
@@ -120,7 +132,8 @@ struct ScheduleView: View {
                                     onDeleteSale: { sale in
                                         store.deleteSale(sale.id)
                                     },
-                                    pairSaleIds: pairSaleIds
+                                    pairSaleIds: pairSaleIds,
+                                    seatSaleIds: seatSaleIds
                                 )
                                 .padding(.horizontal, 16)
                             }
@@ -172,8 +185,8 @@ struct ScheduleView: View {
                         Text(pass.displayTeamName)
                             .font(.headline)
                             .foregroundStyle(.white)
-                        let totalSeats = pass.seatPairs.count * pass.games.count * 2
-                        let seatsSold = pass.sales.count * 2
+                        let totalSeats = pass.seatPairs.reduce(0) { $0 + $1.individualSeats.count } * pass.games.count
+                        let seatsSold = pass.sellAsPairsOnly ? pass.sales.count * 2 : pass.sales.count
                         Text("\(seatsSold) seats sold of \(totalSeats) available")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.9))
@@ -240,6 +253,10 @@ struct ScheduleView: View {
         "\(pair.section)|\(pair.row)|\(pair.seats)"
     }
 
+    private func seatKey(for pair: SeatPair, seat: String) -> String {
+        "\(pair.section)|\(pair.row)|\(seat)"
+    }
+
     private func loadExistingSales(for game: Game) {
         let gameSales = store.salesForGame(game.id)
         for pair in seatPairs {
@@ -251,6 +268,17 @@ struct ScheduleView: View {
             } else {
                 if pairAmounts[key] == nil { pairAmounts[key] = "" }
                 if pairStatuses[key] == nil { pairStatuses[key] = false }
+            }
+            for seat in pair.individualSeats {
+                let sk = seatKey(for: pair, seat: seat)
+                if let existing = gameSales.first(where: { $0.section == pair.section && $0.row == pair.row && $0.seats == seat }) {
+                    seatAmounts[sk] = String(format: "%.0f", existing.price)
+                    seatStatuses[sk] = existing.status == .paid
+                    seatSaleIds[sk] = existing.id
+                } else {
+                    if seatAmounts[sk] == nil { seatAmounts[sk] = "" }
+                    if seatStatuses[sk] == nil { seatStatuses[sk] = false }
+                }
             }
         }
     }
@@ -294,6 +322,45 @@ struct ScheduleView: View {
         }
     }
 
+    private func saveSaleForSeat(_ pair: SeatPair, seat: String, game: Game) {
+        let key = seatKey(for: pair, seat: seat)
+        guard let priceStr = seatAmounts[key], let priceValue = Double(priceStr), priceValue > 0 else { return }
+        let isPaid = seatStatuses[key] ?? false
+        let status: SaleStatus = isPaid ? .paid : .pending
+
+        if let existingId = seatSaleIds[key],
+           var existing = store.salesForGame(game.id).first(where: { $0.id == existingId }) {
+            existing.price = priceValue
+            existing.status = status
+            store.updateSale(existing)
+        } else {
+            let sale = Sale(
+                gameId: game.id,
+                opponent: game.opponent,
+                opponentAbbr: game.opponentAbbr,
+                leagueId: store.activePass?.leagueId ?? "",
+                gameDate: game.date,
+                section: pair.section,
+                row: pair.row,
+                seats: seat,
+                price: priceValue,
+                status: status
+            )
+            store.addSale(sale)
+            seatSaleIds[key] = sale.id
+        }
+    }
+
+    private func deleteSaleForSeat(_ pair: SeatPair, seat: String, game: Game) {
+        let key = seatKey(for: pair, seat: seat)
+        if let existingId = seatSaleIds[key] {
+            store.deleteSale(existingId)
+            seatSaleIds.removeValue(forKey: key)
+            seatAmounts[key] = ""
+            seatStatuses[key] = false
+        }
+    }
+
     private func toggleSaleStatus(_ sale: Sale) {
         var updated = sale
         updated.status = sale.status == .paid ? .pending : .paid
@@ -311,24 +378,35 @@ struct ScheduleGameCard: View {
     let seatPairs: [SeatPair]
     let teamId: String
     let onTap: () -> Void
+    let sellAsPairsOnly: Bool
     @Binding var pairAmounts: [String: String]
     @Binding var pairStatuses: [String: Bool]
+    @Binding var seatAmounts: [String: String]
+    @Binding var seatStatuses: [String: Bool]
     let onSavePair: (SeatPair) -> Void
     let onDeletePair: (SeatPair) -> Void
+    let onSaveSeat: (SeatPair, String) -> Void
+    let onDeleteSeat: (SeatPair, String) -> Void
     let onToggleStatus: (Sale) -> Void
     let onDeleteSale: (Sale) -> Void
     var pairSaleIds: [String: String]
+    var seatSaleIds: [String: String]
 
     private var isPast: Bool {
         game.date < Date.now
     }
 
     private var ticketsSold: Int {
-        sales.count * 2
+        if sellAsPairsOnly {
+            return sales.count * 2
+        } else {
+            return sales.count
+        }
     }
 
     private var ticketsAvailable: Int {
-        max(0, totalSeatPairs * 2 - ticketsSold)
+        let totalTickets = seatPairs.reduce(0) { $0 + $1.individualSeats.count }
+        return max(0, totalTickets - ticketsSold)
     }
 
     private var totalRevenue: Double {
@@ -458,16 +536,33 @@ struct ScheduleGameCard: View {
 
                     if !seatPairs.isEmpty {
                         VStack(spacing: 10) {
-                            ForEach(seatPairs) { pair in
-                                ScheduleInlinePairRow(
-                                    pair: pair,
-                                    amount: bindingForAmount(pair),
-                                    isPaid: bindingForStatus(pair),
-                                    hasExistingSale: pairSaleIds[pairKey(for: pair)] != nil,
-                                    theme: theme,
-                                    onSave: { onSavePair(pair) },
-                                    onDelete: { onDeletePair(pair) }
-                                )
+                            if sellAsPairsOnly {
+                                ForEach(seatPairs) { pair in
+                                    ScheduleInlinePairRow(
+                                        pair: pair,
+                                        amount: bindingForAmount(pair),
+                                        isPaid: bindingForStatus(pair),
+                                        hasExistingSale: pairSaleIds[pairKey(for: pair)] != nil,
+                                        theme: theme,
+                                        onSave: { onSavePair(pair) },
+                                        onDelete: { onDeletePair(pair) }
+                                    )
+                                }
+                            } else {
+                                ForEach(seatPairs) { pair in
+                                    ForEach(pair.individualSeats, id: \.self) { seat in
+                                        ScheduleInlineSeatRow(
+                                            pair: pair,
+                                            seatLabel: seat,
+                                            amount: bindingForSeatAmount(pair, seat: seat),
+                                            isPaid: bindingForSeatStatus(pair, seat: seat),
+                                            hasExistingSale: seatSaleIds[seatKey(for: pair, seat: seat)] != nil,
+                                            theme: theme,
+                                            onSave: { onSaveSeat(pair, seat) },
+                                            onDelete: { onDeleteSeat(pair, seat) }
+                                        )
+                                    }
+                                }
                             }
                         }
                         .padding(.horizontal, 12)
@@ -554,11 +649,32 @@ private extension ScheduleGameCard {
         )
     }
 
+    func seatKey(for pair: SeatPair, seat: String) -> String {
+        "\(pair.section)|\(pair.row)|\(seat)"
+    }
+
+    func bindingForSeatAmount(_ pair: SeatPair, seat: String) -> Binding<String> {
+        let key = seatKey(for: pair, seat: seat)
+        return Binding(
+            get: { seatAmounts[key] ?? "" },
+            set: { seatAmounts[key] = $0 }
+        )
+    }
+
+    func bindingForSeatStatus(_ pair: SeatPair, seat: String) -> Binding<Bool> {
+        let key = seatKey(for: pair, seat: seat)
+        return Binding(
+            get: { seatStatuses[key] ?? false },
+            set: { seatStatuses[key] = $0 }
+        )
+    }
+
     var orphanedSales: [Sale] {
         let pairKeys = Set(seatPairs.map { pairKey(for: $0) })
+        let allSeatKeys = Set(seatPairs.flatMap { pair in pair.individualSeats.map { seatKey(for: pair, seat: $0) } })
         return sales.filter { sale in
             let key = "\(sale.section)|\(sale.row)|\(sale.seats)"
-            return !pairKeys.contains(key)
+            return !pairKeys.contains(key) && !allSeatKeys.contains(key)
         }
     }
 }
@@ -582,6 +698,121 @@ struct ScheduleInlinePairRow: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.white)
                     Text("Seats: \(pair.seats)")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                Spacer()
+                if hasExistingSale {
+                    Text(isPaid ? "Paid" : "Pending")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(isPaid ? Color.green : Color.red)
+                        .clipShape(Capsule())
+                }
+            }
+
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Text("$")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    TextField("Amount", text: $amount)
+                        .keyboardType(.decimalPad)
+                        .font(.subheadline.weight(.semibold))
+                        .focused($amountFocused)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(Color(.systemBackground))
+                .clipShape(.rect(cornerRadius: 8))
+
+                Button {
+                    isPaid = false
+                } label: {
+                    Text("Pending")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 10)
+                        .background(!isPaid ? Color.red : Color(.systemGray3))
+                        .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    isPaid = true
+                } label: {
+                    Text("Paid")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 10)
+                        .background(isPaid ? Color.green : Color(.systemGray3))
+                        .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack(spacing: 8) {
+                Button {
+                    onSave()
+                    amountFocused = false
+                } label: {
+                    Text(hasExistingSale ? "Update" : "Save")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .disabled(amount.isEmpty)
+                .opacity(amount.isEmpty ? 0.5 : 1)
+
+                if hasExistingSale {
+                    Button {
+                        onDelete()
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(10)
+                            .background(Color.red.opacity(0.8))
+                            .clipShape(.rect(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.white.opacity(0.12))
+        .clipShape(.rect(cornerRadius: 10))
+    }
+}
+
+struct ScheduleInlineSeatRow: View {
+    let pair: SeatPair
+    let seatLabel: String
+    @Binding var amount: String
+    @Binding var isPaid: Bool
+    let hasExistingSale: Bool
+    let theme: TeamTheme
+    let onSave: () -> Void
+    let onDelete: () -> Void
+
+    @FocusState private var amountFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Sec \(pair.section) • Row \(pair.row)")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                    Text("Seat: \(seatLabel)")
                         .font(.caption2)
                         .foregroundStyle(.white.opacity(0.7))
                 }

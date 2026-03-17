@@ -14,6 +14,23 @@ nonisolated struct SeatPair: Codable, Identifiable, Hashable, Sendable {
         self.seats = seats
         self.cost = cost
     }
+
+    var individualSeats: [String] {
+        let trimmed = seats.trimmingCharacters(in: .whitespaces)
+        if trimmed.contains("-") {
+            let parts = trimmed.split(separator: "-").map { String($0).trimmingCharacters(in: .whitespaces) }
+            if parts.count == 2 {
+                return parts
+            }
+        }
+        if trimmed.contains(",") {
+            return trimmed.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
+        }
+        if trimmed.contains("&") {
+            return trimmed.split(separator: "&").map { String($0).trimmingCharacters(in: .whitespaces) }
+        }
+        return [trimmed]
+    }
 }
 
 nonisolated struct SeasonPass: Codable, Identifiable, Hashable, Sendable {
