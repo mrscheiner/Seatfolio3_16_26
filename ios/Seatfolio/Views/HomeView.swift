@@ -4,6 +4,7 @@ struct HomeView: View {
     @Environment(DataStore.self) private var store
     @State private var showAddPass = false
     @State private var showEditPass = false
+    @State private var showAllSales = false
 
     private var pass: SeasonPass? { store.activePass }
     private var theme: TeamTheme { store.currentTheme }
@@ -86,6 +87,9 @@ struct HomeView: View {
                 if let pass = store.activePass {
                     EditPassView(pass: pass)
                 }
+            }
+            .sheet(isPresented: $showAllSales) {
+                AllSalesView(sales: recentSales, pass: pass, theme: theme)
             }
 
         }
@@ -374,9 +378,13 @@ struct HomeView: View {
                     .font(.title3.bold())
                 Spacer()
                 if recentSales.count > 5 {
-                    Text("View All (\(recentSales.count))")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                    Button {
+                        showAllSales = true
+                    } label: {
+                        Text("View All (\(recentSales.count))")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(theme.primary)
+                    }
                 }
             }
             .padding(.horizontal, 16)
