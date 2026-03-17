@@ -359,6 +359,18 @@ struct ScheduleGameCard: View {
 
     private var fullOpponentName: String {
         if !game.opponentAbbr.isEmpty {
+            let resolved = LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: leagueId)
+            if resolved != game.opponentAbbr {
+                return resolved
+            }
+        }
+        let name = game.opponent
+            .replacingOccurrences(of: "vs ", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        if !name.isEmpty {
+            return name
+        }
+        if !game.opponentAbbr.isEmpty {
             return LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: leagueId)
         }
         return game.opponent
