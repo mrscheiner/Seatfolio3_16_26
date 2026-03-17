@@ -220,7 +220,7 @@ struct SettingsView: View {
                     ShareSheetView(url: url)
                 }
             }
-            .fileImporter(isPresented: $showImportPicker, allowedContentTypes: [.json]) { result in
+            .fileImporter(isPresented: $showImportPicker, allowedContentTypes: [.json, .commaSeparatedText]) { result in
                 handleImport(result)
             }
             .alert("Copied!", isPresented: $showCopiedAlert) {

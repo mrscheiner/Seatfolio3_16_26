@@ -519,18 +519,174 @@ class DataStore {
         return String(data: data, encoding: .utf8)
     }
 
+    private static let csvHeaders = ["ID","Game ID","Opponent","Opponent Abbr","League","Game Date","Section","Row","Seats","Price","Sold Date","Status"]
+
+    private static let csvDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    private static func csvEscape(_ value: String) -> String {
+        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+        }
+        return value
+    }
+
     func exportCSV() -> String? {
         guard let pass = activePass else { return nil }
-        var csv = "Game,Opponent,Date,Section,Row,Seats,Price,Sold Date,Status\n"
+        var csv = Self.csvHeaders.joined(separator: ",") + "\n"
         for sale in pass.sales {
-            let dateStr = sale.gameDate.formatted(.dateTime.month().day().year())
-            let soldStr = sale.soldDate.formatted(.dateTime.month().day().year())
-            csv += "\(sale.gameId),\(sale.opponent),\(dateStr),\(sale.section),\(sale.row),\(sale.seats),\(sale.price),\(soldStr),\(sale.status.rawValue)\n"
+            let gameDate = Self.csvDateFormatter.string(from: sale.gameDate)
+            let soldDate = Self.csvDateFormatter.string(from: sale.soldDate)
+            let row = [
+                Self.csvEscape(sale.id),
+                Self.csvEscape(sale.gameId),
+                Self.csvEscape(sale.opponent),
+                Self.csvEscape(sale.opponentAbbr),
+                Self.csvEscape(sale.leagueId),
+                gameDate,
+                Self.csvEscape(sale.section),
+                Self.csvEscape(sale.row),
+                Self.csvEscape(sale.seats),
+                String(sale.price),
+                soldDate,
+                sale.status.rawValue
+            ]
+            csv += row.joined(separator: ",") + "\n"
         }
         return csv
     }
 
+    func importCSV(_ csvString: String) throws -> String {
+        guard var pass = activePass else { throw ImportError.noActivePass }
+
+        let lines = csvString.components(separatedBy: .newlines).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        guard lines.count > 1 else { throw ImportError.invalidData("CSV file is empty or has no data rows") }
+
+        let headerLine = lines[0].lowercased()
+        let headers = Self.parseCSVRow(headerLine)
+
+        func colIndex(_ names: [String]) -> Int? {
+            for name in names {
+                if let idx = headers.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces) == name }) {
+                    return idx
+                }
+            }
+            return nil
+        }
+
+        let idIdx = colIndex(["id"])
+        let gameIdIdx = colIndex(["game id", "gameid"])
+        let opponentIdx = colIndex(["opponent"])
+        let opponentAbbrIdx = colIndex(["opponent abbr", "opponentabbr"])
+        let leagueIdx = colIndex(["league", "leagueid", "league id"])
+        let gameDateIdx = colIndex(["game date", "gamedate", "date"])
+        let sectionIdx = colIndex(["section"])
+        let rowIdx = colIndex(["row"])
+        let seatsIdx = colIndex(["seats"])
+        let priceIdx = colIndex(["price"])
+        let soldDateIdx = colIndex(["sold date", "solddate"])
+        let statusIdx = colIndex(["status"])
+
+        guard let _ = priceIdx else {
+            throw ImportError.invalidData("CSV missing required 'Price' column")
+        }
+
+        var importedSales: [Sale] = []
+        for i in 1..<lines.count {
+            let fields = Self.parseCSVRow(lines[i])
+            guard fields.count > 1 else { continue }
+
+            func field(_ idx: Int?) -> String {
+                guard let idx, idx < fields.count else { return "" }
+                return fields[idx].trimmingCharacters(in: .whitespaces)
+            }
+
+            let price = Double(field(priceIdx)) ?? 0
+            let gameDate = Self.csvDateFormatter.date(from: field(gameDateIdx)) ?? Date()
+            let soldDate = Self.csvDateFormatter.date(from: field(soldDateIdx)) ?? Date()
+            let statusStr = field(statusIdx).lowercased()
+            let status: SaleStatus = statusStr == "paid" ? .paid : statusStr == "per seat" ? .perSeat : .pending
+
+            let sale = Sale(
+                id: field(idIdx).isEmpty ? UUID().uuidString : field(idIdx),
+                gameId: field(gameIdIdx),
+                opponent: field(opponentIdx),
+                opponentAbbr: field(opponentAbbrIdx),
+                leagueId: field(leagueIdx).isEmpty ? (pass.leagueId) : field(leagueIdx),
+                gameDate: gameDate,
+                section: field(sectionIdx),
+                row: field(rowIdx),
+                seats: field(seatsIdx),
+                price: price,
+                soldDate: soldDate,
+                status: status
+            )
+            importedSales.append(sale)
+        }
+
+        guard !importedSales.isEmpty else {
+            throw ImportError.invalidData("No valid sales rows found in CSV")
+        }
+
+        let existingIds = Set(pass.sales.map { $0.id })
+        let newSales = importedSales.filter { !existingIds.contains($0.id) }
+        if newSales.isEmpty && !importedSales.isEmpty {
+            pass.sales = importedSales
+            updatePass(pass)
+            return "Updated \(importedSales.count) sales from CSV for \(pass.teamName)"
+        } else {
+            pass.sales.append(contentsOf: newSales)
+            updatePass(pass)
+            return "Added \(newSales.count) sales from CSV to \(pass.teamName)"
+        }
+    }
+
+    private static func parseCSVRow(_ line: String) -> [String] {
+        var fields: [String] = []
+        var current = ""
+        var inQuotes = false
+        var i = line.startIndex
+        while i < line.endIndex {
+            let c = line[i]
+            if inQuotes {
+                if c == "\"" {
+                    let next = line.index(after: i)
+                    if next < line.endIndex && line[next] == "\"" {
+                        current.append("\"")
+                        i = line.index(after: next)
+                        continue
+                    } else {
+                        inQuotes = false
+                    }
+                } else {
+                    current.append(c)
+                }
+            } else {
+                if c == "\"" {
+                    inQuotes = true
+                } else if c == "," {
+                    fields.append(current)
+                    current = ""
+                } else {
+                    current.append(c)
+                }
+            }
+            i = line.index(after: i)
+        }
+        fields.append(current)
+        return fields
+    }
+
     func importJSON(_ jsonString: String) throws -> String {
+        let trimmed = jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.hasPrefix("{") && !trimmed.hasPrefix("[") {
+            return try importCSV(jsonString)
+        }
+
         guard let data = jsonString.data(using: .utf8) else {
             throw ImportError.invalidData("File could not be read as text")
         }
