@@ -602,32 +602,42 @@ struct ScheduleInlinePairRow: View {
 
                 Button {
                     isPaid = false
-                    onSave()
-                    amountFocused = false
                 } label: {
                     Text("Pending")
                         .font(.caption2.weight(.bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 10)
-                        .background(!isPaid && hasExistingSale ? Color.red : Color(.systemGray3))
+                        .background(!isPaid ? Color.red : Color(.systemGray3))
                         .clipShape(.rect(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
-                .disabled(amount.isEmpty)
-                .opacity(amount.isEmpty ? 0.5 : 1)
 
                 Button {
                     isPaid = true
-                    onSave()
-                    amountFocused = false
                 } label: {
                     Text("Paid")
                         .font(.caption2.weight(.bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 10)
-                        .background(isPaid && hasExistingSale ? Color.green : Color(.systemGray3))
+                        .background(isPaid ? Color.green : Color(.systemGray3))
+                        .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack(spacing: 8) {
+                Button {
+                    onSave()
+                    amountFocused = false
+                } label: {
+                    Text(hasExistingSale ? "Update" : "Save")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
                         .clipShape(.rect(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
