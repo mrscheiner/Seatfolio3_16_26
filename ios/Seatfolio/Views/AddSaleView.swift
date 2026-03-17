@@ -41,18 +41,32 @@ struct AddSaleView: View {
                 }
 
                 Section("Seat Info") {
+                    TextField("Section", text: $section)
+                    TextField("Row", text: $row)
+                    TextField("Seats (e.g. 24-25)", text: $seats)
+
                     if !seatPairs.isEmpty {
-                        Button("Autofill from Seat Pair") {
-                            if let first = seatPairs.first {
-                                section = first.section
-                                row = first.row
-                                seats = first.seats
+                        Menu {
+                            ForEach(seatPairs) { pair in
+                                Button("Sec \(pair.section), Row \(pair.row), Seats \(pair.seats)") {
+                                    section = pair.section
+                                    row = pair.row
+                                    seats = pair.seats
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.on.rectangle")
+                                    .foregroundStyle(theme.primary)
+                                Text("Autofill from Seat Pair")
+                                    .foregroundStyle(theme.primary)
+                                Spacer()
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
-                    TextField("Section", text: $section)
-                    TextField("Row", text: $row)
-                    TextField("Seats", text: $seats)
                 }
 
                 Section("Sale Details") {

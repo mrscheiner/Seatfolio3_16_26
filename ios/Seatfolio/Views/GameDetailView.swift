@@ -285,7 +285,9 @@ struct GameSaleEntryView: View {
     @Environment(DataStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     let game: Game
-    @State private var selectedSeatPairId = ""
+    @State private var section = ""
+    @State private var row = ""
+    @State private var seats = ""
     @State private var price = ""
     @State private var isPaid = false
     @State private var editingSale: Sale?
@@ -329,22 +331,29 @@ struct GameSaleEntryView: View {
                 }
 
                 Section {
-                    if seatPairs.count == 1 {
-                        let pair = seatPairs[0]
-                        HStack {
-                            Text("Sec \(pair.section), Row \(pair.row), Seats \(pair.seats)")
-                                .font(.subheadline)
-                            Spacer()
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(theme.primary)
-                        }
-                        .onAppear { selectedSeatPairId = pair.id }
-                    } else {
-                        Picker("Seat Pair", selection: $selectedSeatPairId) {
-                            Text("Select seats").tag("")
+                    TextField("Section", text: $section)
+                    TextField("Row", text: $row)
+                    TextField("Seats (e.g. 24-25)", text: $seats)
+
+                    if !seatPairs.isEmpty {
+                        Menu {
                             ForEach(seatPairs) { pair in
-                                Text("Sec \(pair.section), Row \(pair.row), Seats \(pair.seats)")
-                                    .tag(pair.id)
+                                Button("Sec \(pair.section), Row \(pair.row), Seats \(pair.seats)") {
+                                    section = pair.section
+                                    row = pair.row
+                                    seats = pair.seats
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.on.rectangle")
+                                    .foregroundStyle(theme.primary)
+                                Text("Autofill from Seat Pair")
+                                    .foregroundStyle(theme.primary)
+                                Spacer()
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -395,16 +404,20 @@ struct GameSaleEntryView: View {
                         saveSale()
                         dismiss()
                     }
-                    .disabled(price.isEmpty || (seatPairs.count > 1 && selectedSeatPairId.isEmpty))
+                    .disabled(section.isEmpty || price.isEmpty)
                 }
             }
             .onAppear {
                 if let sale = editingSale {
+                    section = sale.section
+                    row = sale.row
+                    seats = sale.seats
                     price = String(sale.price)
                     isPaid = sale.status == .paid
-                    selectedSeatPairId = seatPairs.first { $0.section == sale.section && $0.row == sale.row }?.id ?? ""
                 } else if seatPairs.count == 1 {
-                    selectedSeatPairId = seatPairs[0].id
+                    section = seatPairs[0].section
+                    row = seatPairs[0].row
+                    seats = seatPairs[0].seats
                 }
             }
         }
@@ -412,16 +425,14 @@ struct GameSaleEntryView: View {
 
     private func saveSale() {
         guard let priceValue = Double(price) else { return }
-        let pair = seatPairs.first { $0.id == selectedSeatPairId } ?? seatPairs.first
-        guard let pair else { return }
         let status: SaleStatus = isPaid ? .paid : .pending
 
         if var existing = editingSale {
             existing.price = priceValue
             existing.status = status
-            existing.section = pair.section
-            existing.row = pair.row
-            existing.seats = pair.seats
+            existing.section = section
+            existing.row = row
+            existing.seats = seats
             store.updateSale(existing)
         } else {
             let sale = Sale(
@@ -430,9 +441,9 @@ struct GameSaleEntryView: View {
                 opponentAbbr: game.opponentAbbr,
                 leagueId: store.activePass?.leagueId ?? "",
                 gameDate: game.date,
-                section: pair.section,
-                row: pair.row,
-                seats: pair.seats,
+                section: section,
+                row: row,
+                seats: seats,
                 price: priceValue,
                 status: status
             )
