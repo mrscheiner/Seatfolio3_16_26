@@ -294,8 +294,8 @@ struct EventStatusBadge: View {
             .font(.caption2.weight(.semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(status == .sold ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
-            .foregroundStyle(status == .sold ? .green : .orange)
+            .background(status == .sold ? Color.green : Color.orange)
+            .foregroundStyle(.white)
             .clipShape(Capsule())
     }
 }

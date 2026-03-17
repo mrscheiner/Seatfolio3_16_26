@@ -558,17 +558,13 @@ struct SaleStatusBadge: View {
 
     private var backgroundColor: Color {
         switch status {
-        case .paid: return Color.green.opacity(0.15)
-        case .pending: return Color.red.opacity(0.15)
-        case .perSeat: return Color.orange.opacity(0.15)
+        case .paid: return Color.green
+        case .pending: return Color.red
+        case .perSeat: return Color.orange
         }
     }
 
     private var foregroundColor: Color {
-        switch status {
-        case .paid: return .green
-        case .pending: return .red
-        case .perSeat: return .orange
-        }
+        return .white
     }
 }

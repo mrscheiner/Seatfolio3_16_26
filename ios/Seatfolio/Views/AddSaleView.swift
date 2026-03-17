@@ -79,8 +79,12 @@ struct AddSaleView: View {
                                 .font(.body)
                             Spacer()
                             Text(isPaid ? "Paid" : "Pending")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(isPaid ? .green : .red)
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(isPaid ? Color.green : Color.red)
+                                .clipShape(Capsule())
                         }
 
                         Toggle(isOn: $isPaid) {
@@ -162,25 +166,20 @@ struct PaymentToggleStyle: ToggleStyle {
             HStack(spacing: 0) {
                 Text("Pending")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(configuration.isOn ? Color.secondary : Color.white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(
-                        configuration.isOn ? Color.clear : Color.red
-                    )
+                    .background(configuration.isOn ? Color(.systemGray4) : Color.red)
                     .clipShape(.rect(cornerRadius: 10))
 
                 Text("Paid")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(configuration.isOn ? Color.white : Color.secondary)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(
-                        configuration.isOn ? Color.green : Color.clear
-                    )
+                    .background(configuration.isOn ? Color.green : Color(.systemGray4))
                     .clipShape(.rect(cornerRadius: 10))
             }
-            .background(Color(.systemGray5))
             .clipShape(.rect(cornerRadius: 12))
         }
         .buttonStyle(.plain)

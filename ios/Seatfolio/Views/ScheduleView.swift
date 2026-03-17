@@ -484,12 +484,12 @@ struct ScheduleGameCard: View {
                                     } label: {
                                         Text(sale.status.rawValue)
                                             .font(.caption2.weight(.bold))
-                                            .foregroundStyle(sale.status == .paid ? .green : .red)
+                                            .foregroundStyle(.white)
                                             .padding(.horizontal, 10)
                                             .padding(.vertical, 4)
                                             .background(
                                                 Capsule()
-                                                    .fill((sale.status == .paid ? Color.green : Color.red).opacity(0.2))
+                                                    .fill(sale.status == .paid ? Color.green : Color.red)
                                             )
                                     }
                                     Button {
@@ -641,16 +641,12 @@ struct ScheduleStatusPill: View {
     var body: some View {
         Text(text)
             .font(.caption.weight(.bold))
-            .foregroundStyle(isPaid ? .green : .red)
+            .foregroundStyle(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill((isPaid ? Color.green : Color.red).opacity(0.15))
-            )
-            .overlay(
-                Capsule()
-                    .stroke((isPaid ? Color.green : Color.red).opacity(0.4), lineWidth: 1)
+                    .fill(isPaid ? Color.green : Color.red)
             )
     }
 }

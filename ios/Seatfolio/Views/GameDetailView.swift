@@ -5,8 +5,9 @@ struct GameDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let game: Game
 
-    @State private var showAddSale = false
-    @State private var editingSale: Sale?
+    @State private var pairPrices: [String: String] = [:]
+    @State private var pairStatuses: [String: Bool] = [:]
+    @State private var pairSaleIds: [String: String] = [:]
 
     private var theme: TeamTheme { store.currentTheme }
 
@@ -30,8 +31,6 @@ struct GameDetailView: View {
         sales.reduce(0) { $0 + $1.price }
     }
 
-
-
     private var fullOpponentName: String {
         guard let pass = store.activePass, !game.opponentAbbr.isEmpty else { return game.opponent }
         let name = LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: pass.leagueId)
@@ -47,10 +46,14 @@ struct GameDetailView: View {
                     VStack(spacing: 16) {
                         gameSummaryCards
 
-                        if sales.isEmpty {
+                        if seatPairs.isEmpty {
                             emptySalesState
                         } else {
-                            salesSection
+                            pairEntrySection
+                        }
+
+                        if !orphanedSales.isEmpty {
+                            orphanedSalesSection
                         }
                     }
                     .padding(.top, 16)
@@ -67,20 +70,33 @@ struct GameDetailView: View {
                     Button("Close") { dismiss() }
                         .foregroundStyle(.white)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showAddSale = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.white)
-                    }
-                }
             }
-            .sheet(isPresented: $showAddSale) {
-                GameSaleEntryView(game: game)
-            }
-            .sheet(item: $editingSale) { sale in
-                GameSaleEntryView(game: game, editingSale: sale)
+            .onAppear { loadExistingSales() }
+        }
+    }
+
+    private var orphanedSales: [Sale] {
+        let pairKeys = Set(seatPairs.map { pairKey(for: $0) })
+        return sales.filter { sale in
+            let key = "\(sale.section)|\(sale.row)|\(sale.seats)"
+            return !pairKeys.contains(key)
+        }
+    }
+
+    private func pairKey(for pair: SeatPair) -> String {
+        "\(pair.section)|\(pair.row)|\(pair.seats)"
+    }
+
+    private func loadExistingSales() {
+        for pair in seatPairs {
+            let key = pairKey(for: pair)
+            if let existing = sales.first(where: { $0.section == pair.section && $0.row == pair.row && $0.seats == pair.seats }) {
+                pairPrices[key] = String(format: "%.0f", existing.price)
+                pairStatuses[key] = existing.status == .paid
+                pairSaleIds[key] = existing.id
+            } else {
+                if pairPrices[key] == nil { pairPrices[key] = "" }
+                if pairStatuses[key] == nil { pairStatuses[key] = false }
             }
         }
     }
@@ -186,39 +202,232 @@ struct GameDetailView: View {
             Image(systemName: "ticket")
                 .font(.system(size: 40))
                 .foregroundStyle(.tertiary)
-            Text("No Sales for This Game")
+            Text("No Seat Pairs Configured")
                 .font(.headline)
-            Text("Tap + to record a ticket sale")
+            Text("Add seat pairs to your season pass to log sales")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Button {
-                showAddSale = true
-            } label: {
-                Label("Add Sale", systemImage: "plus")
-                    .font(.subheadline.weight(.semibold))
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(theme.primary)
         }
         .padding(30)
     }
 
-    private var salesSection: some View {
+    private var pairEntrySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Sales")
+            Text("Sales by Pair")
                 .font(.title3.bold())
                 .padding(.horizontal, 16)
 
-            ForEach(sales) { sale in
-                Button {
-                    editingSale = sale
-                } label: {
-                    GameSaleRow(sale: sale, theme: theme)
-                }
-                .buttonStyle(.plain)
+            ForEach(seatPairs) { pair in
+                PairSaleCard(
+                    pair: pair,
+                    price: bindingForPrice(pair),
+                    isPaid: bindingForStatus(pair),
+                    hasExistingSale: pairSaleIds[pairKey(for: pair)] != nil,
+                    theme: theme,
+                    onSave: { saveSaleForPair(pair) },
+                    onDelete: { deleteSaleForPair(pair) }
+                )
                 .padding(.horizontal, 16)
             }
         }
+    }
+
+    private var orphanedSalesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Other Sales")
+                .font(.title3.bold())
+                .padding(.horizontal, 16)
+
+            ForEach(orphanedSales) { sale in
+                GameSaleRow(sale: sale, theme: theme)
+                    .padding(.horizontal, 16)
+            }
+        }
+    }
+
+    private func bindingForPrice(_ pair: SeatPair) -> Binding<String> {
+        let key = pairKey(for: pair)
+        return Binding(
+            get: { pairPrices[key] ?? "" },
+            set: { pairPrices[key] = $0 }
+        )
+    }
+
+    private func bindingForStatus(_ pair: SeatPair) -> Binding<Bool> {
+        let key = pairKey(for: pair)
+        return Binding(
+            get: { pairStatuses[key] ?? false },
+            set: { pairStatuses[key] = $0 }
+        )
+    }
+
+    private func saveSaleForPair(_ pair: SeatPair) {
+        let key = pairKey(for: pair)
+        guard let priceStr = pairPrices[key], let priceValue = Double(priceStr), priceValue > 0 else { return }
+        let isPaid = pairStatuses[key] ?? false
+        let status: SaleStatus = isPaid ? .paid : .pending
+
+        if let existingId = pairSaleIds[key],
+           var existing = sales.first(where: { $0.id == existingId }) {
+            existing.price = priceValue
+            existing.status = status
+            store.updateSale(existing)
+        } else {
+            let sale = Sale(
+                gameId: game.id,
+                opponent: game.opponent,
+                opponentAbbr: game.opponentAbbr,
+                leagueId: store.activePass?.leagueId ?? "",
+                gameDate: game.date,
+                section: pair.section,
+                row: pair.row,
+                seats: pair.seats,
+                price: priceValue,
+                status: status
+            )
+            store.addSale(sale)
+            pairSaleIds[key] = sale.id
+        }
+    }
+
+    private func deleteSaleForPair(_ pair: SeatPair) {
+        let key = pairKey(for: pair)
+        if let existingId = pairSaleIds[key] {
+            store.deleteSale(existingId)
+            pairSaleIds.removeValue(forKey: key)
+            pairPrices[key] = ""
+            pairStatuses[key] = false
+        }
+    }
+}
+
+struct PairSaleCard: View {
+    let pair: SeatPair
+    @Binding var price: String
+    @Binding var isPaid: Bool
+    let hasExistingSale: Bool
+    let theme: TeamTheme
+    let onSave: () -> Void
+    let onDelete: () -> Void
+
+    @FocusState private var priceFieldFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Sec \(pair.section) • Row \(pair.row)")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Seats: \(pair.seats)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                if hasExistingSale {
+                    statusBadge
+                }
+            }
+
+            HStack(spacing: 12) {
+                HStack(spacing: 6) {
+                    Text("$")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    TextField("Sale Amount", text: $price)
+                        .keyboardType(.decimalPad)
+                        .font(.title3.weight(.semibold))
+                        .focused($priceFieldFocused)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(Color(.systemBackground))
+                .clipShape(.rect(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(priceFieldFocused ? theme.primary : Color(.separator), lineWidth: priceFieldFocused ? 2 : 1)
+                )
+            }
+
+            HStack(spacing: 10) {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        isPaid = false
+                    }
+                } label: {
+                    Text("Pending")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(isPaid ? Color(.systemGray4) : Color.red)
+                        .clipShape(.rect(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        isPaid = true
+                    }
+                } label: {
+                    Text("Paid")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(isPaid ? Color.green : Color(.systemGray4))
+                        .clipShape(.rect(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack(spacing: 10) {
+                Button {
+                    onSave()
+                    priceFieldFocused = false
+                } label: {
+                    Text(hasExistingSale ? "Update" : "Save")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(theme.primary)
+                        .clipShape(.rect(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+                .disabled(price.isEmpty)
+                .opacity(price.isEmpty ? 0.5 : 1)
+
+                if hasExistingSale {
+                    Button {
+                        onDelete()
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44)
+                            .padding(.vertical, 10)
+                            .background(Color.red)
+                            .clipShape(.rect(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(.rect(cornerRadius: 14))
+    }
+
+    private var statusBadge: some View {
+        Text(isPaid ? "Paid" : "Pending")
+            .font(.caption.weight(.bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(isPaid ? Color.green : Color.red)
+            .clipShape(Capsule())
     }
 }
 
@@ -270,184 +479,13 @@ struct GameSaleRow: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(sale.status == .paid ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
-                    .foregroundStyle(sale.status == .paid ? .green : .red)
+                    .foregroundStyle(.white)
+                    .background(sale.status == .paid ? Color.green : Color.red)
                     .clipShape(Capsule())
             }
         }
         .padding(14)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(.rect(cornerRadius: 14))
-    }
-}
-
-struct GameSaleEntryView: View {
-    @Environment(DataStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-    let game: Game
-    @State private var section = ""
-    @State private var row = ""
-    @State private var seats = ""
-    @State private var price = ""
-    @State private var isPaid = false
-    @State private var editingSale: Sale?
-
-    init(game: Game, editingSale: Sale? = nil) {
-        self.game = game
-        _editingSale = State(initialValue: editingSale)
-    }
-
-    private var seatPairs: [SeatPair] {
-        store.activePass?.seatPairs ?? []
-    }
-
-    private var sellAsPairsOnly: Bool {
-        store.activePass?.sellAsPairsOnly ?? true
-    }
-
-    private var theme: TeamTheme { store.currentTheme }
-
-    private var gameSaleFullOpponentName: String {
-        guard let pass = store.activePass, !game.opponentAbbr.isEmpty else { return game.opponent }
-        let name = LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: pass.leagueId)
-        return name == game.opponentAbbr ? game.opponent : name
-    }
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("vs \(gameSaleFullOpponentName)")
-                                .font(.headline)
-                            Text(game.formattedFullDate)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Game")
-                }
-
-                Section {
-                    TextField("Section", text: $section)
-                    TextField("Row", text: $row)
-                    TextField("Seats (e.g. 24-25)", text: $seats)
-
-                    if !seatPairs.isEmpty {
-                        Menu {
-                            ForEach(seatPairs) { pair in
-                                Button("Sec \(pair.section), Row \(pair.row), Seats \(pair.seats)") {
-                                    section = pair.section
-                                    row = pair.row
-                                    seats = pair.seats
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "rectangle.on.rectangle")
-                                    .foregroundStyle(theme.primary)
-                                Text("Autofill from Seat Pair")
-                                    .foregroundStyle(theme.primary)
-                                Spacer()
-                                Image(systemName: "chevron.up.chevron.down")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-
-                    if sellAsPairsOnly {
-                        HStack {
-                            Image(systemName: "info.circle")
-                                .foregroundStyle(.blue)
-                            Text("Selling as pair — enter total for both seats")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Seats")
-                }
-
-                Section {
-                    TextField("Total Sale Amount ($)", text: $price)
-                        .keyboardType(.decimalPad)
-
-                    VStack(spacing: 12) {
-                        HStack {
-                            Text("Payment Status")
-                            Spacer()
-                            Text(isPaid ? "Paid" : "Pending")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(isPaid ? .green : .red)
-                        }
-
-                        Toggle(isOn: $isPaid) {
-                            EmptyView()
-                        }
-                        .toggleStyle(PaymentToggleStyle())
-                    }
-                } header: {
-                    Text("Sale Details")
-                }
-            }
-            .navigationTitle(editingSale == nil ? "Record Sale" : "Edit Sale")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveSale()
-                        dismiss()
-                    }
-                    .disabled(section.isEmpty || price.isEmpty)
-                }
-            }
-            .onAppear {
-                if let sale = editingSale {
-                    section = sale.section
-                    row = sale.row
-                    seats = sale.seats
-                    price = String(sale.price)
-                    isPaid = sale.status == .paid
-                } else if seatPairs.count == 1 {
-                    section = seatPairs[0].section
-                    row = seatPairs[0].row
-                    seats = seatPairs[0].seats
-                }
-            }
-        }
-    }
-
-    private func saveSale() {
-        guard let priceValue = Double(price) else { return }
-        let status: SaleStatus = isPaid ? .paid : .pending
-
-        if var existing = editingSale {
-            existing.price = priceValue
-            existing.status = status
-            existing.section = section
-            existing.row = row
-            existing.seats = seats
-            store.updateSale(existing)
-        } else {
-            let sale = Sale(
-                gameId: game.id,
-                opponent: game.opponent,
-                opponentAbbr: game.opponentAbbr,
-                leagueId: store.activePass?.leagueId ?? "",
-                gameDate: game.date,
-                section: section,
-                row: row,
-                seats: seats,
-                price: priceValue,
-                status: status
-            )
-            store.addSale(sale)
-        }
     }
 }
