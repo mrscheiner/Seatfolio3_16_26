@@ -507,6 +507,8 @@ struct ScheduleGameCard: View {
                                 Text(totalRevenue, format: .currency(code: "USD"))
                                     .font(.caption.weight(.bold))
                                     .foregroundStyle(adaptiveTextColor)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
                             }
                         }
                     }
@@ -586,6 +588,8 @@ struct ScheduleGameCard: View {
                                     Text(sale.price, format: .currency(code: "USD"))
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(adaptiveTextColor)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
                                     Button {
                                         onToggleStatus(sale)
                                     } label: {

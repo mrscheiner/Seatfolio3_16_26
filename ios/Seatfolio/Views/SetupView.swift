@@ -217,6 +217,8 @@ struct SetupView: View {
                             Spacer()
                             Text(pair.cost, format: .currency(code: "USD"))
                                 .font(.body.weight(.semibold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
                             Button(role: .destructive) {
                                 withAnimation { seatPairs.removeAll { $0.id == pair.id } }
                             } label: {

@@ -156,6 +156,8 @@ struct EditPassView: View {
                 Text(pair.cost, format: .currency(code: "USD"))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                 Image(systemName: "pencil")
                     .font(.caption)
                     .foregroundStyle(.tertiary)

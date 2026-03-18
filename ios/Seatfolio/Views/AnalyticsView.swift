@@ -116,6 +116,8 @@ struct AnalyticsView: View {
                         Text(pnl, format: .currency(code: "USD"))
                             .font(.title3.bold())
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                     }
                 }
             }
@@ -174,6 +176,8 @@ struct AnalyticsView: View {
                 let totalRev = allSeasonMonths.reduce(0) { $0 + $1.1 }
                 Text(totalRev, format: .currency(code: "USD").precision(.fractionLength(0)))
                     .font(.title2.bold())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -261,6 +265,8 @@ struct AnalyticsView: View {
                         VStack(alignment: .trailing, spacing: 4) {
                             Text(revenue, format: .currency(code: "USD"))
                                 .font(.subheadline.weight(.semibold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
                             HStack(spacing: 8) {
                                 Text("\(gamesSold) games")
                                     .font(.caption)
@@ -268,6 +274,8 @@ struct AnalyticsView: View {
                                 Text(balance, format: .currency(code: "USD"))
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(balance >= 0 ? .green : .red)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
                             }
                         }
                     }
@@ -295,6 +303,8 @@ struct AnalyticsView: View {
                 Spacer()
                 Text(pass?.totalSeasonCost ?? 0, format: .currency(code: "USD"))
                     .font(.body.weight(.medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
             }
 
             HStack {
@@ -304,6 +314,8 @@ struct AnalyticsView: View {
                 Text(pass?.totalRevenue ?? 0, format: .currency(code: "USD"))
                     .font(.body.weight(.medium))
                     .foregroundStyle(.green)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
             }
 
             Divider()
@@ -316,6 +328,8 @@ struct AnalyticsView: View {
                 Text(pnl, format: .currency(code: "USD"))
                     .font(.title3.bold())
                     .foregroundStyle(pnl >= 0 ? .green : .red)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
             }
         }
         .padding(16)

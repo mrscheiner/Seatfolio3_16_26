@@ -165,6 +165,8 @@ struct GameDetailView: View {
                     Text(totalRevenue, format: .currency(code: "USD"))
                         .font(.title3.bold())
                         .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                 }
                 VStack(spacing: 2) {
                     Text("Tickets Sold")
@@ -702,6 +704,8 @@ struct GameSaleRow: View {
             VStack(alignment: .trailing, spacing: 6) {
                 Text(sale.price, format: .currency(code: "USD"))
                     .font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
 
                 Text(sale.status.rawValue)
                     .font(.caption2.weight(.bold))

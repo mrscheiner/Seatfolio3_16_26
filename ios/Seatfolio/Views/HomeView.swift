@@ -192,6 +192,8 @@ struct HomeView: View {
                         Text(p.netProfitLoss, format: .currency(code: "USD"))
                             .font(.title3.bold())
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                     }
                 }
             }
@@ -260,6 +262,8 @@ struct HomeView: View {
                         Text(pass?.netProfitLoss ?? 0, format: .currency(code: "USD"))
                             .font(.title3.bold())
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                     }
                 }
             }
@@ -529,6 +533,8 @@ struct RecentSaleCard: View {
                 VStack(alignment: .trailing, spacing: 6) {
                     Text(sale.price, format: .currency(code: "USD"))
                         .font(.headline)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
 
                     SaleStatusBadge(status: sale.status)
                 }

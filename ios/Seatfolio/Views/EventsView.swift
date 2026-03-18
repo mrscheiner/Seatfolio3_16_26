@@ -158,6 +158,8 @@ struct EventSummaryPill: View {
             Text(value)
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -227,6 +229,8 @@ struct EventCardView: View {
                             .foregroundStyle(.secondary)
                         Text(event.pricePaid, format: .currency(code: "USD"))
                             .font(.subheadline.weight(.medium))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                     }
                     if let sold = event.priceSold {
                         VStack(alignment: .leading) {
@@ -236,6 +240,8 @@ struct EventCardView: View {
                             Text(sold, format: .currency(code: "USD"))
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(.green)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
                         }
                     }
                     if let pl = event.profitLoss {
@@ -246,6 +252,8 @@ struct EventCardView: View {
                             Text(pl, format: .currency(code: "USD"))
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(pl >= 0 ? .green : .red)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
                         }
                     }
                 }
