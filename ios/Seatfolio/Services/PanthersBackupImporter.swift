@@ -38,7 +38,7 @@ enum PanthersBackupImporter {
     ]
 
     static func importIfNeeded(into passes: inout [SeasonPass], activePassId: inout String?) -> Bool {
-        let importKey = "panthers_backup_imported_v1"
+        let importKey = "panthers_backup_imported_v2"
         guard !UserDefaults.standard.bool(forKey: importKey) else { return false }
 
         guard let url = Bundle.main.url(forResource: "SeasonPassBackup_2026-02-22", withExtension: "json") else {

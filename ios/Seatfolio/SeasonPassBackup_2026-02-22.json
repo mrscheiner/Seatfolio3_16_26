@@ -1926,9 +1926,9 @@
         },
         {
           "id": "36",
-          "date": "Mar 26, 2026",
+          "date": "Mar 27, 2026",
           "month": "Mar",
-          "day": "26",
+          "day": "27",
           "opponent": "vs Minnesota Wild",
           "opponentLogo": "https://upload.wikimedia.org/wikipedia/en/thumb/1/1b/Minnesota_Wild.svg/200px-Minnesota_Wild.svg.png",
           "time": "7:00 PM ET",
@@ -1936,7 +1936,7 @@
           "isPaid": false,
           "type": "Regular",
           "gameNumber": "36",
-          "dateTimeISO": "2026-03-26T23:00:00Z"
+          "dateTimeISO": "2026-03-27T23:00:00Z"
         },
         {
           "id": "37",
