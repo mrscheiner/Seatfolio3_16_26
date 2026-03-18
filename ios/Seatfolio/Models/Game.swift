@@ -51,15 +51,24 @@ nonisolated struct Game: Codable, Identifiable, Hashable, Sendable {
     }
 
     var formattedDate: String {
-        date.formatted(.dateTime.month(.abbreviated).day())
+        let df = DateFormatter()
+        df.dateFormat = "MMM d"
+        df.timeZone = TimeZone(identifier: "America/New_York")
+        return df.string(from: date)
     }
 
     var formattedFullDate: String {
-        date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+        let df = DateFormatter()
+        df.dateFormat = "EEEE, MMM d"
+        df.timeZone = TimeZone(identifier: "America/New_York")
+        return df.string(from: date)
     }
 
     var monthYear: String {
-        date.formatted(.dateTime.month(.wide).year())
+        let df = DateFormatter()
+        df.dateFormat = "MMMM yyyy"
+        df.timeZone = TimeZone(identifier: "America/New_York")
+        return df.string(from: date)
     }
 
     var displayLabel: String {

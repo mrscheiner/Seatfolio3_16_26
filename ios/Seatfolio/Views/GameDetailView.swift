@@ -147,7 +147,7 @@ struct GameDetailView: View {
                     Text("vs \(fullOpponentName)")
                         .font(.title3.bold())
                         .foregroundStyle(.white)
-                    Text(game.formattedFullDate)
+                    Text(TimezoneHelper.formatFullDate(game.date, teamId: store.activePass?.teamId ?? ""))
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.8))
                     Text(TimezoneHelper.formatGameTime(game.date, teamId: store.activePass?.teamId ?? ""))

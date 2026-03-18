@@ -289,6 +289,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
 
         let df = DateFormatter()
         df.locale = Locale(identifier: "en_US_POSIX")
+        df.timeZone = TimeZone(identifier: "America/New_York")
         df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         return df.date(from: str)
     }

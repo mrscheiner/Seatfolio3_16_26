@@ -475,10 +475,10 @@ struct ScheduleGameCard: View {
             } label: {
                 HStack(spacing: 14) {
                     VStack(spacing: 2) {
-                        Text(game.date.formatted(.dateTime.month(.abbreviated)))
+                        Text(TimezoneHelper.formatMonth(game.date, teamId: teamId))
                             .font(.caption.weight(.bold))
                             .textCase(.uppercase)
-                        Text(game.date.formatted(.dateTime.day()))
+                        Text(TimezoneHelper.formatDay(game.date, teamId: teamId))
                             .font(.title.bold())
                     }
                     .foregroundStyle(adaptiveTextColor)

@@ -99,6 +99,46 @@ nonisolated struct TimezoneHelper {
         return df.string(from: date)
     }
 
+    static func formatMonth(_ date: Date, teamId: String) -> String {
+        let tz = timezone(for: teamId)
+        let df = DateFormatter()
+        df.dateFormat = "MMM"
+        df.timeZone = tz
+        return df.string(from: date).uppercased()
+    }
+
+    static func formatDay(_ date: Date, teamId: String) -> String {
+        let tz = timezone(for: teamId)
+        let df = DateFormatter()
+        df.dateFormat = "d"
+        df.timeZone = tz
+        return df.string(from: date)
+    }
+
+    static func formatShortDate(_ date: Date, teamId: String) -> String {
+        let tz = timezone(for: teamId)
+        let df = DateFormatter()
+        df.dateFormat = "MMM d"
+        df.timeZone = tz
+        return df.string(from: date)
+    }
+
+    static func formatFullDate(_ date: Date, teamId: String) -> String {
+        let tz = timezone(for: teamId)
+        let df = DateFormatter()
+        df.dateFormat = "EEEE, MMM d"
+        df.timeZone = tz
+        return df.string(from: date)
+    }
+
+    static func formatMonthYear(_ date: Date, teamId: String) -> String {
+        let tz = timezone(for: teamId)
+        let df = DateFormatter()
+        df.dateFormat = "MMMM yyyy"
+        df.timeZone = tz
+        return df.string(from: date)
+    }
+
     nonisolated enum ESTStyle: Sendable {
         case dateTime
         case timeOnly
