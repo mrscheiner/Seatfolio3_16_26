@@ -158,6 +158,7 @@ nonisolated struct LeagueData {
             Team(id: "tb_mlb", name: "Rays", city: "Tampa Bay", abbreviation: "TB", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png", primaryColor: "092C5C", secondaryColor: "8FBCE6", apiAbbr: "TB"),
             Team(id: "tex", name: "Rangers", city: "Texas", abbreviation: "TEX", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png", primaryColor: "003278", secondaryColor: "C0111F", apiAbbr: "TEX"),
             Team(id: "tor_mlb", name: "Blue Jays", city: "Toronto", abbreviation: "TOR", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png", primaryColor: "134A8E", secondaryColor: "1D2D5C", apiAbbr: "TOR"),
+            Team(id: "mia_mlb", name: "Marlins", city: "Miami", abbreviation: "MIA", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png", primaryColor: "00A3E0", secondaryColor: "EF3340", apiAbbr: "MIA"),
             Team(id: "was_mlb", name: "Nationals", city: "Washington", abbreviation: "WAS", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png", primaryColor: "AB0003", secondaryColor: "14225A", apiAbbr: "WAS")
         ]
     )
