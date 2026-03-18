@@ -190,7 +190,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
                 }
 
                 let sdGames = try JSONDecoder().decode([SDScheduleGame].self, from: data)
-                let homeGames = sdGames.filter { $0.resolvedHomeTeam == teamAbbr }
+                let homeGames = sdGames.filter { $0.resolvedHomeTeam == teamAbbr && $0.status?.lowercased() != "canceled" && $0.status?.lowercased() != "cancelled" }
                 print("[SportsData] \(suffix.isEmpty ? "REG" : suffix): \(sdGames.count) total, \(homeGames.count) home games for \(teamAbbr)")
 
                 if homeGames.isEmpty && !sdGames.isEmpty {
