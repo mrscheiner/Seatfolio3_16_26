@@ -166,7 +166,7 @@ struct ScheduleView: View {
                 }
             }
             .task(id: store.activePassId) {
-                guard let pass = store.activePass, pass.games.isEmpty, !store.isLoadingSchedule else { return }
+                guard store.activePass != nil, !store.isLoadingSchedule else { return }
                 await store.fetchScheduleFromAPI()
             }
         }

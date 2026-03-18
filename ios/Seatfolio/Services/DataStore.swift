@@ -357,11 +357,6 @@ class DataStore {
     }
 
     func fetchScheduleFromAPI() async {
-        guard !isFetching else {
-            print("[DataStore] Fetch already in progress, skipping")
-            return
-        }
-
         guard let pass = activePass else {
             scheduleError = "No active pass selected"
             return
@@ -374,10 +369,8 @@ class DataStore {
         scheduleError = nil
 
         defer {
-            if fetchTaskId == currentFetchId {
-                isFetching = false
-                isLoadingSchedule = false
-            }
+            isFetching = false
+            isLoadingSchedule = false
         }
 
         do {
@@ -387,6 +380,7 @@ class DataStore {
             }
 
             let season = SportsDataService.shared.seasonString(for: pass.leagueId, from: pass.seasonLabel)
+            print("[DataStore] Fetching schedule for \(team.apiAbbr) season=\(season) leagueId=\(pass.leagueId)")
 
             let games = try await SportsDataService.shared.fetchSchedule(
                 leagueId: pass.leagueId,
@@ -399,12 +393,14 @@ class DataStore {
                 return
             }
 
+            print("[DataStore] Received \(games.count) games, replacing schedule")
             setGames(games)
             backfillSalesFromGames(games)
             scheduleError = nil
         } catch {
             guard fetchTaskId == currentFetchId else { return }
             scheduleError = error.localizedDescription
+            print("[DataStore] Schedule fetch error: \(error.localizedDescription)")
         }
     }
 
