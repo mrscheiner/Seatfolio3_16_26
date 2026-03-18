@@ -128,7 +128,7 @@ struct AddSaleView: View {
 
         if var existing = editingSale {
             existing.gameId = selectedGameId
-            existing.opponent = game?.opponent ?? ""
+            existing.opponent = resolvedFullName(game: game)
             existing.opponentAbbr = game?.opponentAbbr ?? existing.opponentAbbr
             existing.leagueId = store.activePass?.leagueId ?? existing.leagueId
             existing.gameDate = game?.date ?? Date()
@@ -141,7 +141,7 @@ struct AddSaleView: View {
         } else {
             let sale = Sale(
                 gameId: selectedGameId,
-                opponent: game?.opponent ?? "",
+                opponent: resolvedFullName(game: game),
                 opponentAbbr: game?.opponentAbbr ?? "",
                 leagueId: store.activePass?.leagueId ?? "",
                 gameDate: game?.date ?? Date(),
@@ -153,6 +153,16 @@ struct AddSaleView: View {
             )
             store.addSale(sale)
         }
+    }
+
+    private func resolvedFullName(game: Game?) -> String {
+        guard let game else { return "" }
+        let leagueId = store.activePass?.leagueId ?? ""
+        if !game.opponentAbbr.isEmpty {
+            let name = LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: leagueId)
+            if name != game.opponentAbbr { return name }
+        }
+        return game.opponent
     }
 }
 

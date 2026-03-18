@@ -420,7 +420,13 @@ class DataStore {
                 changed = true
             }
             if sale.opponent.isEmpty && !game.opponent.isEmpty {
-                pass.sales[i].opponent = game.opponent
+                let lid = activePass?.leagueId ?? ""
+                if !game.opponentAbbr.isEmpty {
+                    let fullName = LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: lid)
+                    pass.sales[i].opponent = fullName != game.opponentAbbr ? fullName : game.opponent
+                } else {
+                    pass.sales[i].opponent = game.opponent
+                }
                 changed = true
             }
             if sale.leagueId.isEmpty, let lid = activePass?.leagueId, !lid.isEmpty {

@@ -87,16 +87,16 @@ struct GameDetailView: View {
     }
 
     private var orphanedSales: [Sale] {
-        let pairKeys = Set(seatPairs.map { pairKey(for: $0) })
-        let allSeatKeys = Set(seatPairs.flatMap { pair in pair.individualSeats.map { "\(pair.section)|\(pair.row)|\($0)" } })
+        let pairSeatSigs = Set(seatPairs.map { "\($0.section)|\($0.row)|\($0.seats)" })
+        let individualSeatSigs = Set(seatPairs.flatMap { pair in pair.individualSeats.map { "\(pair.section)|\(pair.row)|\($0)" } })
         return sales.filter { sale in
-            let key = "\(sale.section)|\(sale.row)|\(sale.seats)"
-            return !pairKeys.contains(key) && !allSeatKeys.contains(key)
+            let sig = "\(sale.section)|\(sale.row)|\(sale.seats)"
+            return !pairSeatSigs.contains(sig) && !individualSeatSigs.contains(sig)
         }
     }
 
     private func pairKey(for pair: SeatPair) -> String {
-        "\(pair.section)|\(pair.row)|\(pair.seats)"
+        pair.id
     }
 
     private func loadExistingSales() {
@@ -107,25 +107,25 @@ struct GameDetailView: View {
                 pairStatuses[key] = existing.status == .paid
                 pairSaleIds[key] = existing.id
             } else {
-                if pairPrices[key] == nil { pairPrices[key] = "" }
-                if pairStatuses[key] == nil { pairStatuses[key] = false }
+                pairPrices[key] = pairPrices[key] ?? ""
+                pairStatuses[key] = pairStatuses[key] ?? false
             }
             for seat in pair.individualSeats {
-                let seatKey = seatKey(for: pair, seat: seat)
+                let sk = seatKey(for: pair, seat: seat)
                 if let existing = sales.first(where: { $0.section == pair.section && $0.row == pair.row && $0.seats == seat }) {
-                    seatPrices[seatKey] = String(format: "%.0f", existing.price)
-                    seatStatuses[seatKey] = existing.status == .paid
-                    seatSaleIds[seatKey] = existing.id
+                    seatPrices[sk] = String(format: "%.0f", existing.price)
+                    seatStatuses[sk] = existing.status == .paid
+                    seatSaleIds[sk] = existing.id
                 } else {
-                    if seatPrices[seatKey] == nil { seatPrices[seatKey] = "" }
-                    if seatStatuses[seatKey] == nil { seatStatuses[seatKey] = false }
+                    seatPrices[sk] = seatPrices[sk] ?? ""
+                    seatStatuses[sk] = seatStatuses[sk] ?? false
                 }
             }
         }
     }
 
     private func seatKey(for pair: SeatPair, seat: String) -> String {
-        "\(pair.section)|\(pair.row)|\(seat)"
+        "\(pair.id)|\(seat)"
     }
 
     private var gameHeader: some View {
@@ -321,11 +321,13 @@ struct GameDetailView: View {
             existing.status = status
             store.updateSale(existing)
         } else {
+            let leagueId = store.activePass?.leagueId ?? ""
+            let fullName = resolvedFullOpponentName(abbr: game.opponentAbbr, fallback: game.opponent, leagueId: leagueId)
             let sale = Sale(
                 gameId: game.id,
-                opponent: game.opponent,
+                opponent: fullName,
                 opponentAbbr: game.opponentAbbr,
-                leagueId: store.activePass?.leagueId ?? "",
+                leagueId: leagueId,
                 gameDate: game.date,
                 section: pair.section,
                 row: pair.row,
@@ -376,11 +378,13 @@ struct GameDetailView: View {
             existing.status = status
             store.updateSale(existing)
         } else {
+            let leagueId = store.activePass?.leagueId ?? ""
+            let fullName = resolvedFullOpponentName(abbr: game.opponentAbbr, fallback: game.opponent, leagueId: leagueId)
             let sale = Sale(
                 gameId: game.id,
-                opponent: game.opponent,
+                opponent: fullName,
                 opponentAbbr: game.opponentAbbr,
-                leagueId: store.activePass?.leagueId ?? "",
+                leagueId: leagueId,
                 gameDate: game.date,
                 section: pair.section,
                 row: pair.row,
@@ -401,6 +405,14 @@ struct GameDetailView: View {
             pairPrices[key] = ""
             pairStatuses[key] = false
         }
+    }
+
+    private func resolvedFullOpponentName(abbr: String, fallback: String, leagueId: String) -> String {
+        if !abbr.isEmpty {
+            let name = LeagueData.teamNameForAPIAbbr(abbr, leagueId: leagueId)
+            if name != abbr { return name }
+        }
+        return fallback
     }
 }
 

@@ -295,11 +295,13 @@ struct ScheduleView: View {
             existing.status = status
             store.updateSale(existing)
         } else {
+            let leagueId = store.activePass?.leagueId ?? ""
+            let fullName = resolvedFullName(game: game, leagueId: leagueId)
             let sale = Sale(
                 gameId: game.id,
-                opponent: game.opponent,
+                opponent: fullName,
                 opponentAbbr: game.opponentAbbr,
-                leagueId: store.activePass?.leagueId ?? "",
+                leagueId: leagueId,
                 gameDate: game.date,
                 section: pair.section,
                 row: pair.row,
@@ -334,11 +336,13 @@ struct ScheduleView: View {
             existing.status = status
             store.updateSale(existing)
         } else {
+            let leagueId = store.activePass?.leagueId ?? ""
+            let fullName = resolvedFullName(game: game, leagueId: leagueId)
             let sale = Sale(
                 gameId: game.id,
-                opponent: game.opponent,
+                opponent: fullName,
                 opponentAbbr: game.opponentAbbr,
-                leagueId: store.activePass?.leagueId ?? "",
+                leagueId: leagueId,
                 gameDate: game.date,
                 section: pair.section,
                 row: pair.row,
@@ -365,6 +369,14 @@ struct ScheduleView: View {
         var updated = sale
         updated.status = sale.status == .paid ? .pending : .paid
         store.updateSale(updated)
+    }
+
+    private func resolvedFullName(game: Game, leagueId: String) -> String {
+        if !game.opponentAbbr.isEmpty {
+            let name = LeagueData.teamNameForAPIAbbr(game.opponentAbbr, leagueId: leagueId)
+            if name != game.opponentAbbr { return name }
+        }
+        return game.opponent
     }
 }
 
