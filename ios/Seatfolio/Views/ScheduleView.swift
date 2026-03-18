@@ -249,42 +249,44 @@ struct ScheduleView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func pairKey(for pair: SeatPair) -> String {
-        "\(pair.section)|\(pair.row)|\(pair.seats)"
+    private func pairKey(for pair: SeatPair, gameId: String) -> String {
+        "\(gameId)|\(pair.section)|\(pair.row)|\(pair.seats)"
     }
 
-    private func seatKey(for pair: SeatPair, seat: String) -> String {
-        "\(pair.section)|\(pair.row)|\(seat)"
+    private func seatKey(for pair: SeatPair, seat: String, gameId: String) -> String {
+        "\(gameId)|\(pair.section)|\(pair.row)|\(seat)"
     }
 
     private func loadExistingSales(for game: Game) {
         let gameSales = store.salesForGame(game.id)
         for pair in seatPairs {
-            let key = pairKey(for: pair)
+            let key = pairKey(for: pair, gameId: game.id)
             if let existing = gameSales.first(where: { $0.section == pair.section && $0.row == pair.row && $0.seats == pair.seats }) {
                 pairAmounts[key] = String(format: "%.0f", existing.price)
                 pairStatuses[key] = existing.status == .paid
                 pairSaleIds[key] = existing.id
             } else {
-                if pairAmounts[key] == nil { pairAmounts[key] = "" }
-                if pairStatuses[key] == nil { pairStatuses[key] = false }
+                pairAmounts[key] = ""
+                pairStatuses[key] = false
+                pairSaleIds.removeValue(forKey: key)
             }
             for seat in pair.individualSeats {
-                let sk = seatKey(for: pair, seat: seat)
+                let sk = seatKey(for: pair, seat: seat, gameId: game.id)
                 if let existing = gameSales.first(where: { $0.section == pair.section && $0.row == pair.row && $0.seats == seat }) {
                     seatAmounts[sk] = String(format: "%.0f", existing.price)
                     seatStatuses[sk] = existing.status == .paid
                     seatSaleIds[sk] = existing.id
                 } else {
-                    if seatAmounts[sk] == nil { seatAmounts[sk] = "" }
-                    if seatStatuses[sk] == nil { seatStatuses[sk] = false }
+                    seatAmounts[sk] = ""
+                    seatStatuses[sk] = false
+                    seatSaleIds.removeValue(forKey: sk)
                 }
             }
         }
     }
 
     private func saveSaleForPair(_ pair: SeatPair, game: Game) {
-        let key = pairKey(for: pair)
+        let key = pairKey(for: pair, gameId: game.id)
         guard let priceStr = pairAmounts[key], let priceValue = Double(priceStr), priceValue > 0 else { return }
         let isPaid = pairStatuses[key] ?? false
         let status: SaleStatus = isPaid ? .paid : .pending
@@ -315,7 +317,7 @@ struct ScheduleView: View {
     }
 
     private func deleteSaleForPair(_ pair: SeatPair, game: Game) {
-        let key = pairKey(for: pair)
+        let key = pairKey(for: pair, gameId: game.id)
         if let existingId = pairSaleIds[key] {
             store.deleteSale(existingId)
             pairSaleIds.removeValue(forKey: key)
@@ -325,7 +327,7 @@ struct ScheduleView: View {
     }
 
     private func saveSaleForSeat(_ pair: SeatPair, seat: String, game: Game) {
-        let key = seatKey(for: pair, seat: seat)
+        let key = seatKey(for: pair, seat: seat, gameId: game.id)
         guard let priceStr = seatAmounts[key], let priceValue = Double(priceStr), priceValue > 0 else { return }
         let isPaid = seatStatuses[key] ?? false
         let status: SaleStatus = isPaid ? .paid : .pending
@@ -356,7 +358,7 @@ struct ScheduleView: View {
     }
 
     private func deleteSaleForSeat(_ pair: SeatPair, seat: String, game: Game) {
-        let key = seatKey(for: pair, seat: seat)
+        let key = seatKey(for: pair, seat: seat, gameId: game.id)
         if let existingId = seatSaleIds[key] {
             store.deleteSale(existingId)
             seatSaleIds.removeValue(forKey: key)
@@ -646,7 +648,7 @@ struct ScheduleGameCard: View {
 
 private extension ScheduleGameCard {
     func pairKey(for pair: SeatPair) -> String {
-        "\(pair.section)|\(pair.row)|\(pair.seats)"
+        "\(game.id)|\(pair.section)|\(pair.row)|\(pair.seats)"
     }
 
     func bindingForAmount(_ pair: SeatPair) -> Binding<String> {
@@ -666,7 +668,7 @@ private extension ScheduleGameCard {
     }
 
     func seatKey(for pair: SeatPair, seat: String) -> String {
-        "\(pair.section)|\(pair.row)|\(seat)"
+        "\(game.id)|\(pair.section)|\(pair.row)|\(seat)"
     }
 
     func bindingForSeatAmount(_ pair: SeatPair, seat: String) -> Binding<String> {
@@ -686,11 +688,11 @@ private extension ScheduleGameCard {
     }
 
     var orphanedSales: [Sale] {
-        let pairKeys = Set(seatPairs.map { pairKey(for: $0) })
-        let allSeatKeys = Set(seatPairs.flatMap { pair in pair.individualSeats.map { seatKey(for: pair, seat: $0) } })
+        let pairSigs = Set(seatPairs.map { "\($0.section)|\($0.row)|\($0.seats)" })
+        let allSeatSigs = Set(seatPairs.flatMap { pair in pair.individualSeats.map { "\(pair.section)|\(pair.row)|\($0)" } })
         return sales.filter { sale in
-            let key = "\(sale.section)|\(sale.row)|\(sale.seats)"
-            return !pairKeys.contains(key) && !allSeatKeys.contains(key)
+            let sig = "\(sale.section)|\(sale.row)|\(sale.seats)"
+            return !pairSigs.contains(sig) && !allSeatSigs.contains(sig)
         }
     }
 }
