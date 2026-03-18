@@ -297,7 +297,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
     private nonisolated func formatTime(_ str: String) -> String {
         guard let date = parseDate(str) else { return "TBD" }
         let df = DateFormatter()
-        df.dateFormat = "h:mm a 'EST'"
+        df.dateFormat = "h:mm a zzz"
         df.timeZone = TimezoneHelper.est
         return df.string(from: date)
     }
@@ -486,7 +486,7 @@ nonisolated class SportsDataService: @unchecked Sendable {
 
     private nonisolated func formatTime(from date: Date) -> String {
         let df = DateFormatter()
-        df.dateFormat = "h:mm a 'EST'"
+        df.dateFormat = "h:mm a zzz"
         df.timeZone = TimezoneHelper.est
         return df.string(from: date)
     }
