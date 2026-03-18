@@ -144,6 +144,7 @@ nonisolated struct LeagueData {
             Team(id: "kc_mlb", name: "Royals", city: "Kansas City", abbreviation: "KC", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png", primaryColor: "004687", secondaryColor: "BD9B60", apiAbbr: "KC"),
             Team(id: "laa", name: "Angels", city: "Los Angeles", abbreviation: "LAA", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png", primaryColor: "BA0021", secondaryColor: "003263", apiAbbr: "LAA"),
             Team(id: "lad", name: "Dodgers", city: "Los Angeles", abbreviation: "LAD", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png", primaryColor: "005A9C", secondaryColor: "EF3E42", apiAbbr: "LAD"),
+            Team(id: "mia_mlb", name: "Marlins", city: "Miami", abbreviation: "MIA", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png", primaryColor: "00A3E0", secondaryColor: "EF3340", apiAbbr: "MIA"),
             Team(id: "mil_mlb", name: "Brewers", city: "Milwaukee", abbreviation: "MIL", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/mil.png", primaryColor: "12284B", secondaryColor: "FFC52F", apiAbbr: "MIL"),
             Team(id: "min_mlb", name: "Twins", city: "Minnesota", abbreviation: "MIN", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/min.png", primaryColor: "002B5C", secondaryColor: "D31145", apiAbbr: "MIN"),
             Team(id: "nym", name: "Mets", city: "New York", abbreviation: "NYM", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png", primaryColor: "002D72", secondaryColor: "FF5910", apiAbbr: "NYM"),
@@ -158,7 +159,6 @@ nonisolated struct LeagueData {
             Team(id: "tb_mlb", name: "Rays", city: "Tampa Bay", abbreviation: "TB", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png", primaryColor: "092C5C", secondaryColor: "8FBCE6", apiAbbr: "TB"),
             Team(id: "tex", name: "Rangers", city: "Texas", abbreviation: "TEX", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png", primaryColor: "003278", secondaryColor: "C0111F", apiAbbr: "TEX"),
             Team(id: "tor_mlb", name: "Blue Jays", city: "Toronto", abbreviation: "TOR", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png", primaryColor: "134A8E", secondaryColor: "1D2D5C", apiAbbr: "TOR"),
-            Team(id: "mia_mlb", name: "Marlins", city: "Miami", abbreviation: "MIA", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png", primaryColor: "00A3E0", secondaryColor: "EF3340", apiAbbr: "MIA"),
             Team(id: "was_mlb", name: "Nationals", city: "Washington", abbreviation: "WAS", logoURL: "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png", primaryColor: "AB0003", secondaryColor: "14225A", apiAbbr: "WAS")
         ]
     )
