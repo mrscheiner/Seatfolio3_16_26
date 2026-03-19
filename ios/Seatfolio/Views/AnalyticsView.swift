@@ -54,6 +54,8 @@ struct AnalyticsView: View {
         return Double(pass.totalSeatsSold) / Double(totalPossible) * 100
     }
 
+    private var detectedSales: [EmailSale] { EmailScannerService.scanMockEmails() }
+
     private var theme: TeamTheme { store.currentTheme }
 
     var body: some View {
@@ -63,6 +65,7 @@ struct AnalyticsView: View {
                     analyticsHeader
 
                     VStack(spacing: 20) {
+                        detectedSalesSection
                         overviewCards
                         revenueChart
                         seatPerformanceSection
@@ -88,6 +91,50 @@ struct AnalyticsView: View {
                 }
             }
         }
+    }
+
+    private var detectedSalesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "envelope.open.fill")
+                    .foregroundStyle(.orange)
+                Text("Detected Sales")
+                    .font(.headline)
+                Spacer()
+                Text("Beta")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(.orange.gradient)
+                    .clipShape(Capsule())
+            }
+
+            ForEach(detectedSales) { sale in
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(sale.parsedGame ?? "Unknown Game")
+                            .font(.subheadline.weight(.medium))
+                        Text(sale.date, style: .date)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if let amount = sale.parsedAmount {
+                        Text(amount, format: .currency(code: "USD"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.green)
+                    }
+                }
+                .padding(12)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(.rect(cornerRadius: 10))
+            }
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(.rect(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
     }
 
     private var analyticsHeader: some View {
